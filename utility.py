@@ -1,4 +1,5 @@
 import subprocess
+from typing import List
 
 class Asset:
     def __init__(self, name: str, amount: int):
@@ -12,7 +13,7 @@ class Asset:
         return str(self)
 
 class Utxo:
-    def __init__(self, txId: str, index: int, assets: [Asset]):
+    def __init__(self, txId: str, index: int, assets: List[Asset]):
         self.txId = txId
         self.index = index
         self.assets = assets
@@ -23,7 +24,7 @@ class Utxo:
     def __repr__(self):
         return str(self)
 
-def getUtxos(address) -> [Utxo]:
+def getUtxos(address) -> List[Utxo]:
     process = subprocess.run(["cardano-cli", "query", "utxo", "--mainnet", "--address", address], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error getting UTXOs for address {address}\n{process.stderr.decode("UTF-8")}')
