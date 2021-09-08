@@ -38,7 +38,6 @@ def getUtxos(address) -> [Utxo]:
         utxoLineSplit = list(filter(None, utxoLine.split(" ")))
 
         assetStrs = list(filter(lambda s: s != "+", utxoLineSplit[2:]))
-        print(assetStrs)
         assets = []
         for i in range(int(len(assetStrs)/2)):
             assets.append(Asset(assetStrs[i*2+1], int(assetStrs[i*2])))
