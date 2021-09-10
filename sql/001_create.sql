@@ -1,3 +1,4 @@
+--NFTs that will be minted on sale
 CREATE TABLE nfts (
     nftId INT GENERATED ALWAYS AS IDENTITY
     , assetName VARCHAR(16) NOT NULL
@@ -5,6 +6,7 @@ CREATE TABLE nfts (
     , PRIMARY KEY (nftId)
 );
 
+--Types of packs that can be bought from the bending machine
 CREATE TABLE packTypes (
     packTypeId INT NOT NULL
     , description VARCHAR(32) NOT NULL
@@ -12,17 +14,32 @@ CREATE TABLE packTypes (
     , PRIMARY KEY (packTypeId)
 );
 
+--Record of all incoming UTXOs
+CREATE TABLE payments (
+    paymentId INT GENERATED ALWAYS AS IDENTITY
+    , txId VARCHAR(64) NOT NULL
+    , indexId INT NOT NULL
+    , utxo VARCHAR(128) GENERATED ALWAYS AS (txId || '#' ||CAST(indexId AS VARCHAR(64))) STORED
+    , lovelace INT NOT NULL
+    , otherAssets VARCHAR(4096) NOT NULL
+    , paymentAddress VARCHAR(128) NOT NULL
+)
+
+--Packs and information about whether they were sold or not
 CREATE TABLE packs (
     packId INT GENERATED ALWAYS AS IDENTITY
     , packTypeId INT NOT NULL
-    , paymentTxId VARCHAR(64) NULL
+    , paymentId VARCHAR(64) NULL
     , mintingTxId VARCHAR(64) NULL
     , PRIMARY KEY (packId)
     , CONSTRAINT FK_packs_packTypes FOREIGN KEY (packTypeId) 
         REFERENCES packTypes(packTypeId)
+    , CONSTRAINT FK_packs_payments FOREIGN KEY (paymentId) 
+        REFERENCES payments(paymentId)
     , CONSTRAINT CK_packs_tx CHECK (mintingTxId IS NULL OR (paymentTxId IS NOT NULL AND mintingTxId IS NOT NULL))
 );
 
+--Describes what NFTs are contained in which packs. All NFTs should be pre-assigned to packs
 CREATE TABLE packContents (
     packId INT NOT NULL
     , nftId INT NOT NULL
@@ -33,16 +50,19 @@ CREATE TABLE packContents (
         REFERENCES nfts(nftId)
 );
 
+--Log of payments that can't be returned since they contain insufficient funds
+--to cover min utxo & fee
 CREATE TABLE insufficientFundsForReturn (
-    txId VARCHAR(64) NOT NULL
-    , indexId INT NOT NULL
-    , utxo VARCHAR(128) GENERATED ALWAYS AS (txId || '#' ||CAST(indexId AS VARCHAR(64))) STORED
-    , PRIMARY KEY (txId, indexId)
+    paymentId INT NOT NULL
+    , PRIMARY KEY (paymentId)
+    , CONSTRAINT FK_insufficentFuns_payments FOREIGN KEY (paymentId) 
+        REFERENCES payments(paymentId)
 );
 
+--Log of errors that occur trying to process a payment
 CREATE TABLE errorLog (
-    txId VARCHAR(64) NOT NULL
-    , indexId INT NOT NULL
-    , utxo VARCHAR(128) GENERATED ALWAYS AS (txId || '#' ||CAST(indexId AS VARCHAR(64))) STORED
+    paymentId INT NOT NULL
     , errorMessage VARCHAR(4800) NOT NULL
+    , CONSTRAINT FK_errorLog_payments FOREIGN KEY (paymentId) 
+        REFERENCES payments(paymentId)
 );
