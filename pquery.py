@@ -1,22 +1,31 @@
-import psycopg2
+import psycopg2 #type: ignore
 import config
 
 def read(query: str):
-    """ Connect to the PostgreSQL database server """
     conn = None
     try:
-        # read connection parameters
         params = config.config("postgresql")
-        # connect to the PostgreSQL server
         conn = psycopg2.connect(**params)
-        # create a cursor
         cur = conn.cursor()
-        # execute a statement
         cur.execute(query)
-        # display the PostgreSQL database server version
         results = cur.fetchall()
         cur.close()
         return results
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+def write(query: str):
+    conn = None
+    try:
+        params = config.config("postgresql")
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        cur.execute(query)
+        conn.commit()
+        cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:
