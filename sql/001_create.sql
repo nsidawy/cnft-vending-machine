@@ -23,7 +23,7 @@ CREATE TABLE payments (
     , lovelace INT NOT NULL
     , otherAssets VARCHAR(4096) NOT NULL
     , paymentAddress VARCHAR(128) NOT NULL
-)
+);
 
 --Packs and information about whether they were sold or not
 CREATE TABLE packs (
