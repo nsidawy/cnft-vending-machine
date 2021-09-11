@@ -8,10 +8,10 @@ class Asset:
         self.amount = amount
 
     def __str__(self):
-        return f'Asset {{ Name: {self.name}, Amount: {self.amount} }}'
+        return f'{self.amount} {self.name}'
 
     def __repr__(self):
-        return str(self)
+        return f'Asset {{ Name: {self.name}, Amount: {self.amount} }}'
 
 class Utxo:
     def __init__(self, txId: str, index: int, assets: List[Asset]):
@@ -23,7 +23,7 @@ class Utxo:
         return f'Utxo {{ TxId: {self.txId}, Index: {self.index}, Assets: {self.assets} }}'
 
     def __repr__(self):
-        return str(self)
+        return f'Utxo {{ TxId: {self.txId}, Index: {self.index}, Assets: {self.assets} }}'
 
 def get_multi_asset_str(assets: List[Asset]) -> str:
     asset_strings = list(map(lambda a: f'{a.amount} {a.name}', assets))
