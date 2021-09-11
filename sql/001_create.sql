@@ -23,20 +23,22 @@ CREATE TABLE payments (
     , lovelace INT NOT NULL
     , otherAssets VARCHAR(4096) NOT NULL
     , paymentAddress VARCHAR(128) NOT NULL
+    , PRIMARY KEY (paymentId)
+    , CONSTRAINT UQ_payments UNIQUE (txId, indexId)
 );
 
 --Packs and information about whether they were sold or not
 CREATE TABLE packs (
     packId INT GENERATED ALWAYS AS IDENTITY
     , packTypeId INT NOT NULL
-    , paymentId VARCHAR(64) NULL
+    , paymentId INT
     , mintingTxId VARCHAR(64) NULL
     , PRIMARY KEY (packId)
     , CONSTRAINT FK_packs_packTypes FOREIGN KEY (packTypeId) 
         REFERENCES packTypes(packTypeId)
     , CONSTRAINT FK_packs_payments FOREIGN KEY (paymentId) 
         REFERENCES payments(paymentId)
-    , CONSTRAINT CK_packs_tx CHECK (mintingTxId IS NULL OR (paymentTxId IS NOT NULL AND mintingTxId IS NOT NULL))
+    , CONSTRAINT CK_packs_tx CHECK (mintingTxId IS NULL OR (paymentId IS NOT NULL AND mintingTxId IS NOT NULL))
 );
 
 --Describes what NFTs are contained in which packs. All NFTs should be pre-assigned to packs

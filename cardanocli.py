@@ -29,6 +29,14 @@ def get_multi_asset_str(assets: List[Asset]) -> str:
     asset_strings = list(map(lambda a: f'{a.amount} {a.name}', assets))
     return " + ".join(asset_strings)
 
+def get_assets_from_str(multi_asset_str: str) -> List[Asset]:
+    tokens = list(filter(None, multi_asset_str.split(" ")))
+    assetStrs = list(filter(lambda s: s != "+", tokens))
+    assets = []
+    for i in range(int(len(assetStrs)/2)):
+        assets.append(Asset(assetStrs[i*2+1], int(assetStrs[i*2])))
+    return assets
+
 
 def get_protocol_params_path():
     return config.config("params_file")["path"]
@@ -51,10 +59,8 @@ def get_utxos(address) -> List[Utxo]:
             continue
         utxoLineSplit = list(filter(None, utxoLine.split(" ")))
 
-        assetStrs = list(filter(lambda s: s != "+", utxoLineSplit[2:]))
-        assets = []
-        for i in range(int(len(assetStrs)/2)):
-            assets.append(Asset(assetStrs[i*2+1], int(assetStrs[i*2])))
+        multi_asset_str = " ".join(utxoLineSplit[2:])
+        assets = get_assets_from_str(multi_asset_str)
 
         utxos.append(Utxo(utxoLineSplit[0], int(utxoLineSplit[1]), assets))
 
