@@ -20,7 +20,7 @@ CREATE TABLE payments (
     , txId VARCHAR(64) NOT NULL
     , indexId INT NOT NULL
     , utxo VARCHAR(128) GENERATED ALWAYS AS (txId || '#' ||CAST(indexId AS VARCHAR(64))) STORED
-    , lovelace INT NOT NULL
+    , lovelace BIGINT NOT NULL
     , otherAssets VARCHAR(4096) NOT NULL
     , paymentAddress VARCHAR(128) NOT NULL
     , PRIMARY KEY (paymentId)

@@ -43,7 +43,7 @@ def get_tx_id(signed_tx_path) -> str:
     return process.stdout.decode("UTF-8").strip()
 
 def calculate_min_value(assets: List[Asset]) -> int:
-    get_multi_asset_str(assets)
+    multi_asset = get_multi_asset_str(assets)
 
     process = subprocess.run([
             "cardano-cli", "transaction", "calculate-min-value"
