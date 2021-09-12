@@ -1,8 +1,8 @@
 import subprocess
-import config
 from typing import List
 from utxo import Utxo
-from asset import *
+from asset import Asset, get_assets_from_str, get_multi_asset_str
+import config
 
 def get_protocol_params_path():
     return config.config("params_file")["path"]
@@ -17,18 +17,18 @@ def get_utxos(address) -> List[Utxo]:
         raise Exception(f'Error getting UTXOs for address {address}\n{process.stderr.decode("UTF-8")}')
 
     lines = process.stdout.decode("UTF-8").split("\n")
-    utxoLines = lines[2:]
+    utxo_lines = lines[2:]
     utxos = []
 
-    for utxoLine in utxoLines:
-        if utxoLine == "":
+    for utxo_line in utxo_lines:
+        if utxo_line == "":
             continue
-        utxoLineSplit = list(filter(None, utxoLine.split(" ")))
+        utxo_line_split = list(filter(None, utxo_line.split(" ")))
 
-        multi_asset_str = " ".join(utxoLineSplit[2:])
+        multi_asset_str = " ".join(utxo_line_split[2:])
         assets = get_assets_from_str(multi_asset_str)
 
-        utxos.append(Utxo(utxoLineSplit[0], int(utxoLineSplit[1]), assets))
+        utxos.append(Utxo(utxo_line_split[0], int(utxo_line_split[1]), assets))
 
     return utxos
 

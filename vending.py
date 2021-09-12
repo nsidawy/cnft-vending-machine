@@ -1,12 +1,12 @@
-import config
 import time
 import sys
 import traceback
-import cardanocli
 from datetime import datetime
-import data
-import blockfrost
 import asset
+import blockfrost
+import cardanocli
+import config
+import data
 
 def vend():
     addresses = config.config("address")
@@ -24,7 +24,7 @@ def vend():
             for utxo in utxos:
                 payment_addr = blockfrost.get_tx_payment_addr(utxo.tx_id)
                 (lovelace_asset, other_assets) = asset.get_lovelace_and_other_assets(utxo.assets)
-                
+
                 # get payment ID
                 payment_id = data.get_payment_id(utxo.tx_id, utxo.index_id)
                 if payment_id is None:
@@ -35,7 +35,7 @@ def vend():
                         , other_assets
                         , payment_addr)
 
-            
+
 
         except Exception:
             print(traceback.format_exc())
@@ -44,8 +44,8 @@ def vend():
 
 def update_print():
     old_f = sys.stdout
-    class F:
+    class DebugWriter:
         def write(self, x):
             now = datetime.now().strftime("%H:%M:%S")
             old_f.write(x.replace("\n", " [%s]\n" % now))
-    sys.stdout = F()
+    sys.stdout = DebugWriter()
