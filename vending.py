@@ -7,14 +7,12 @@ import blockfrost
 import cardanocli
 import config
 import data
+import payment
 
 def vend():
     addresses = config.config("address")
-    treasury_addr = addresses["treasury_addr"]
     receive_addr = addresses["receive_addr"]
-    receive_skey_path = addresses["receive_skey_path"]
-    minting_skey_path = addresses["minting_skey_path"]
-    lovelace_to_packtypes = data.get_pack_dict()
+    lovelace_to_packtypes = data.get_pack_types_dict()
 
     print(lovelace_to_packtypes)
 
@@ -34,8 +32,25 @@ def vend():
                         , lovelace_asset.amount
                         , other_assets
                         , payment_addr)
+                    print(f"Inserted new payment {payment_id} for {utxo.tx_id}#{utxo.index_id}")
+                else: 
+                    #TODO: Check if the payment is handled already. if so then continue to next tuxo
 
+                bought_pack = lovelace_to_packtypes.get(lovelace_asset.amount)
 
+                # handle incorrect payment amount
+                if bought_pack is None:
+                    print(f"Payment {payment_id} did not submit a valid payment amount: {lovelace_asset.amount}")
+                    payment.return_payment(payment_id, payment_addr, utxo)
+                    continue
+
+                pack_id = data.get_pack_to_sell(bought_pack.pack_type_id)
+                if pack_id is None:
+                    print(f"No more packs remaining: {bought_pack}")
+                    payment.return_payment(payment_id, payment_addr, utxo)
+                    continue
+
+                payment.send_pack(pack_id, payment_id, payment_addr, utxo)
 
         except Exception:
             print(traceback.format_exc())

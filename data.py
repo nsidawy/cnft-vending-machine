@@ -90,7 +90,7 @@ def get_payment_id(tx_id: str, index_id: int):
         return None
     return results[0][0]
 
-def get_pack_dict():
+def get_pack_types_dict():
     results = pquery.read("""
         SELECT packTypeId, description, lovelaceCost
         FROM packTypes
@@ -100,3 +100,16 @@ def get_pack_dict():
         raise Exception("packtypes table is empty")
 
     return {packtype[2]: PackType(packtype[0], packtype[1], packtype[2]) for packtype in results}
+
+def get_pack_to_sell(pack_type_id) -> int:
+    results = pquery.read(f"""
+        SELECT packId
+        FROM packs
+        WHERE packTypeId = {pack_type_id}
+        LIMIT 1
+    """)
+
+    if len(results) == 0:
+        return None
+
+    return results[0][0]
