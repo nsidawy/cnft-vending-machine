@@ -16,11 +16,14 @@ def get_multi_asset_str(assets: List[Asset]) -> str:
     return " + ".join(asset_strings)
 
 def get_assets_from_str(multi_asset_str: str) -> List[Asset]:
-    tokens = list(filter(None, multi_asset_str.split(" ")))
-    asset_strs = list(filter(lambda s: s != "+", tokens))
+    asset_strs = multi_asset_str.split("+")
+    asset_arrs = [list(filter(None, asset_str.split(" "))) for asset_str in asset_strs]
     assets = []
-    for i in range(int(len(asset_strs)/2)):
-        assets.append(Asset(asset_strs[i*2+1], int(asset_strs[i*2])))
+    for asset_arr in asset_arrs:
+        # skip datum
+        if len(asset_arr) != 2:
+            continue
+        assets.append(Asset(asset_arr[1], int(asset_arr[0])))
     return assets
 
 def get_lovelace_and_other_assets(assets: List[Asset]) -> Tuple[Asset, List[Asset]]:

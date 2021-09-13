@@ -101,4 +101,22 @@ def sign_txn(tx_draft_path: str, tx_signed_path: str, key_paths: List[str]):
             + signings
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
-        raise Exception(f'Error building transaction\n{process.stderr.decode("UTF-8")}')
+        raise Exception(f'Error signing transaction\n{process.stderr.decode("UTF-8")}')
+
+def submit_txn(tx_signed_path: str) -> str:
+    process = subprocess.run([
+            "cardano-cli", "transaction", "submit"
+            , "--mainnet"
+            , "--tx-file", tx_signed_path]
+        , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    if process.returncode != 0:
+        raise Exception(f'Error signing transaction\n{process.stderr.decode("UTF-8")}')
+
+    process = subprocess.run([
+            "cardano-cli", "transaction", "txid"
+            , "--tx-file", tx_signed_path]
+        , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    if process.returncode != 0:
+        raise Exception(f'Error getting tx ID\n{process.stderr.decode("UTF-8")}')
+
+    return process.stdout.decode("UTF-8").strip()

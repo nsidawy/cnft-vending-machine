@@ -36,7 +36,8 @@ def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
         tx_raw_path)
 
     cardanocli.sign_txn(tx_raw_path, tx_signed_path, [receive_skey_path])
-    print(f"Payment {payment_id} refunded.")
+    tx_id = cardanocli.submit_txn(tx_signed_path)
+    print(f"Payment {payment_id} refunded w/ txn {tx_id}.")
 
 def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
     print(f"Sending pack {pack_id} for payment {payment_id}")
