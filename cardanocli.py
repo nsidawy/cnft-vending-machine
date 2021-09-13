@@ -4,14 +4,21 @@ from utxo import Utxo
 from asset import Asset, get_assets_from_str, get_multi_asset_str
 import config
 
+def get_net_cli_arg():
+    net_params = config.config("net")
+    if net_params["is_testnet"] == "true":
+        return ["--testnet-magic", net_params["testnet_magic"]]
+    else:
+        return ["--mainnet"]
+
 def get_protocol_params_path():
     return config.config("params_file")["path"]
 
 def get_utxos(address) -> List[Utxo]:
     process = subprocess.run([
             "cardano-cli", "query", "utxo"
-            , "--mainnet"
             , "--address", address]
+            + get_net_cli_arg()
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error getting UTXOs for address {address}\n{process.stderr.decode("UTF-8")}')
@@ -62,11 +69,11 @@ def calculate_min_fee(tx_body_file: str, tx_in_count: int, tx_out_count: int, wi
     process = subprocess.run([
             "cardano-cli", "transaction", "calculate-min-fee"
             , "--protocol-params-file", get_protocol_params_path()
-            , "--mainnet"
             , "--tx-body-file", tx_body_file
             , "--tx-in-count", str(tx_in_count)
             , "--tx-out-count", str(tx_out_count)
             , "--witness-count", str(witness_count)]
+            + get_net_cli_arg()
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error calculating min fee for txn {tx_body_file}\n{process.stderr.decode("UTF-8")}')
@@ -95,10 +102,10 @@ def sign_txn(tx_draft_path: str, tx_signed_path: str, key_paths: List[str]):
     signings = [item for sublist in signing_tuples for item in sublist]
     process = subprocess.run([
             "cardano-cli", "transaction", "sign"
-            , "--mainnet"
             , "--tx-body-file", tx_draft_path
             , "--out-file", tx_signed_path]
             + signings
+            + get_net_cli_arg()
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error signing transaction\n{process.stderr.decode("UTF-8")}')
@@ -106,8 +113,8 @@ def sign_txn(tx_draft_path: str, tx_signed_path: str, key_paths: List[str]):
 def submit_txn(tx_signed_path: str) -> str:
     process = subprocess.run([
             "cardano-cli", "transaction", "submit"
-            , "--mainnet"
-            , "--tx-file", tx_signed_path]
+            , "--tx-file", tx_signed_path
+            + get_net_cli_arg()]
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error signing transaction\n{process.stderr.decode("UTF-8")}')

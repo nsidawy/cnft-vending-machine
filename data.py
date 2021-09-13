@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from cardanocli import Asset
 from cardanocli import get_multi_asset_str
 from nft import Nft
@@ -102,7 +102,7 @@ def get_pack_types_dict():
 
     return {packtype[2]: PackType(packtype[0], packtype[1], packtype[2]) for packtype in results}
 
-def get_pack_to_sell(pack_type_id) -> int:
+def get_pack_to_sell(pack_type_id) -> Optional[int]:
     results = pquery.read(f"""
         SELECT packId
         FROM packs
@@ -115,7 +115,7 @@ def get_pack_to_sell(pack_type_id) -> int:
 
     return results[0][0]
 
-def get_pack_nfts(pack_id) -> int:
+def get_pack_nfts(pack_id) -> List[Nft]:
     results = pquery.read(f"""
         SELECT n.nftId, n.assetName, metadatajson
         FROM nfts n
