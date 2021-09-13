@@ -1,5 +1,5 @@
 import subprocess
-from typing import List
+from typing import List, Tuple
 from utxo import Utxo
 from asset import Asset, get_assets_from_str, get_multi_asset_str
 import config
@@ -74,3 +74,31 @@ def calculate_min_fee(tx_body_file: str, tx_in_count: int, tx_out_count: int, wi
     out = process.stdout.decode("UTF-8").strip()
     fee = int(out.split(" ")[0])
     return fee
+
+def build_txn(utxo: Utxo, outputs: List[Tuple[str, List[Asset]]], fee: int, tx_draft_path: str):
+    tx_out_tuples = [["--tx-out", f"{output[0]}+{get_multi_asset_str(output[1])}"] for output in outputs]
+    tx_outs = [item for sublist in tx_out_tuples for item in sublist]
+    process = subprocess.run([
+            "cardano-cli", "transaction", "build-raw"
+            , "--tx-in", f"{utxo.tx_id}#{utxo.index_id}"
+            , "--fee", str(fee)
+            , "--out-file", tx_draft_path]
+            + tx_outs
+        , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    if process.returncode != 0:
+        raise Exception(f'Error building transaction\n{process.stderr.decode("UTF-8")}')
+
+    return tx_draft_path
+
+def sign_txn(tx_draft_path: str, tx_signed_path: str, key_paths: List[str]):
+    signing_tuples = [["--signing-key-file", key_path] for key_path in key_paths]
+    signings = [item for sublist in signing_tuples for item in sublist]
+    process = subprocess.run([
+            "cardano-cli", "transaction", "sign"
+            , "--mainnet"
+            , "--tx-body-file", tx_draft_path
+            , "--out-file", tx_signed_path]
+            + signings
+        , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    if process.returncode != 0:
+        raise Exception(f'Error building transaction\n{process.stderr.decode("UTF-8")}')

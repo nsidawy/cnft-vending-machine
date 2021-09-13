@@ -1,6 +1,7 @@
 from typing import List
 from cardanocli import Asset
 from cardanocli import get_multi_asset_str
+from nft import Nft
 from packtype import PackType
 import pquery
 
@@ -113,3 +114,14 @@ def get_pack_to_sell(pack_type_id) -> int:
         return None
 
     return results[0][0]
+
+def get_pack_nfts(pack_id) -> int:
+    results = pquery.read(f"""
+        SELECT n.nftId, n.assetName, metadatajson
+        FROM nfts n
+        JOIN packContents pc
+            ON n.nftId = pc.nftId
+        WHERE packId = {pack_id}
+    """)
+
+    return [Nft(result[0], result[1], result[2]) for result in results]

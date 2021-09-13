@@ -1,4 +1,20 @@
 INSERT INTO packtypes(packTypeId, description, lovelaceCost)
 SELECT 1, 'Test1', 111
-UNION ALL SELECT 2, 'Test2', 222
-UNION ALL SELECT 3, 'Test3', 1500000
+UNION ALL SELECT 2, 'Test2', 1500000
+UNION ALL SELECT 3, 'Test3', 333;
+
+INSERT INTO nfts (assetName, metadataJson)
+SELECT 'NFT1', '{}' 
+UNION ALL SELECT 'NFT2', '{}' 
+UNION ALL SELECT 'NFT3', '{}' 
+UNION ALL SELECT 'NFT4', '{}';
+
+INSERT INTO packs (packTypeId)
+SELECT 1 
+UNION ALL SELECT 2;
+
+INSERT INTO packContents(packId, nftId)
+SELECT 1, 1
+UNION ALL SELECT 2, 2
+UNION ALL SELECT 2, 3
+UNION ALL SELECT 2, 4;

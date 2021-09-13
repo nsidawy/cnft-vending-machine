@@ -50,6 +50,7 @@ CREATE TABLE packContents (
         REFERENCES packs(packId)
     , CONSTRAINT FK_packContents_nfts FOREIGN KEY  (nftId)
         REFERENCES nfts(nftId)
+    , CONSTRAINT UQ_packContents_nft UNIQUE (nftId)
 );
 
 --Log of payments that can't be returned since they contain insufficient funds
