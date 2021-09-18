@@ -82,15 +82,31 @@ def calculate_min_fee(tx_body_file: str, tx_in_count: int, tx_out_count: int, wi
     fee = int(out.split(" ")[0])
     return fee
 
-def build_txn(utxo: Utxo, outputs: List[Tuple[str, List[Asset]]], fee: int, tx_draft_path: str):
+def build_txn(
+        utxo: Utxo
+        , outputs: List[Tuple[str, List[Asset]]]
+        , fee: int
+        , tx_draft_path: str
+        , minting_assets: List[Asset]
+    ):
     tx_out_tuples = [["--tx-out", f"{output[0]}+{get_multi_asset_str(output[1])}"] for output in outputs]
     tx_outs = [item for sublist in tx_out_tuples for item in sublist]
+    mint_args = []
+    if len(minting_assets) > 0:
+        mint_args.append("--mint")
+        mint_args.append(get_multi_asset_str(minting_assets))
+
+        minting_script_path = config.config("minting")["script_path"]
+        mint_args.append("--mint-script-file")
+        mint_args.append(minting_script_path)
+
     process = subprocess.run([
             "cardano-cli", "transaction", "build-raw"
             , "--tx-in", f"{utxo.tx_id}#{utxo.index_id}"
             , "--fee", str(fee)
             , "--out-file", tx_draft_path]
             + tx_outs
+            + mint_args
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error building transaction\n{process.stderr.decode("UTF-8")}')
@@ -113,8 +129,8 @@ def sign_txn(tx_draft_path: str, tx_signed_path: str, key_paths: List[str]):
 def submit_txn(tx_signed_path: str) -> str:
     process = subprocess.run([
             "cardano-cli", "transaction", "submit"
-            , "--tx-file", tx_signed_path
-            + get_net_cli_arg()]
+            , "--tx-file", tx_signed_path]
+            + get_net_cli_arg()
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error signing transaction\n{process.stderr.decode("UTF-8")}')

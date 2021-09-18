@@ -81,15 +81,27 @@ def insert_payment(tx_id: str, index_id: int, lovelace: int, other_assets: List[
 
 def get_payment_id(tx_id: str, index_id: int):
     results = pquery.read(f"""
-        select paymentid
-        from payments
-        where txid = '{tx_id}'
-            and indexid = {index_id}
+        SELECT paymentid
+        FROM payments
+        WHERE txid = '{tx_id}'
+            AND indexid = {index_id}
     """)
 
     if len(results) == 0:
         return None
     return results[0][0]
+
+def insert_payment_refund(payment_id: int, refund_tx_id: str):
+    results = pquery.write(f"""
+        INSERT INTO refunds(paymentId, refundTxId)
+        SELECT {payment_id}, '{refund_tx_id}'
+    """)
+
+def insert_insufficient_funds_for_return(payment_id: int, min_value: int, min_fee: int):
+    results = pquery.write(f"""
+        INSERT INTO insufficientFundsForReturn(paymentId, minValue, minFee)
+        SELECT {payment_id}, {min_value}, {min_fee}
+    """)
 
 def get_pack_types_dict():
     results = pquery.read("""
@@ -107,6 +119,7 @@ def get_pack_to_sell(pack_type_id) -> Optional[int]:
         SELECT packId
         FROM packs
         WHERE packTypeId = {pack_type_id}
+            AND paymentId IS NULL
         LIMIT 1
     """)
 
@@ -117,11 +130,11 @@ def get_pack_to_sell(pack_type_id) -> Optional[int]:
 
 def get_pack_nfts(pack_id) -> List[Nft]:
     results = pquery.read(f"""
-        SELECT n.nftId, n.assetName, metadatajson
+        SELECT n.nftId, n.policyId, n.assetName, metadatajson
         FROM nfts n
         JOIN packContents pc
             ON n.nftId = pc.nftId
         WHERE packId = {pack_id}
     """)
 
-    return [Nft(result[0], result[1], result[2]) for result in results]
+    return [Nft(result[0], result[1], result[2], result[3]) for result in results]

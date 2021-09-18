@@ -1,6 +1,7 @@
 --NFTs that will be minted on sale
 CREATE TABLE nfts (
     nftId INT GENERATED ALWAYS AS IDENTITY
+    , policyId VARCHAR(128) NOT NULL
     , assetName VARCHAR(16) NOT NULL
     , metaDataJson VARCHAR(16000) NOT NULL
     , PRIMARY KEY (nftId)
@@ -23,8 +24,17 @@ CREATE TABLE payments (
     , lovelace BIGINT NOT NULL
     , otherAssets VARCHAR(4096) NOT NULL
     , paymentAddress VARCHAR(128) NOT NULL
+    , refundTxId VARCHAR(64) NULL
     , PRIMARY KEY (paymentId)
     , CONSTRAINT UQ_payments UNIQUE (txId, indexId)
+);
+
+CREATE TABLE refunds (
+    paymentId INT NOT NULL
+    , refundTxId VARCHAR(64) NOT NULL
+    , PRIMARY KEY (paymentId)
+    , CONSTRAINT FK_refunds_payments FOREIGN KEY (paymentId) 
+        REFERENCES payments(paymentId)
 );
 
 --Packs and information about whether they were sold or not
@@ -57,6 +67,9 @@ CREATE TABLE packContents (
 --to cover min utxo & fee
 CREATE TABLE insufficientFundsForReturn (
     paymentId INT NOT NULL
+    , minValue BIGINT NOT NULL
+    , minFee BIGINT NOT NULL
+    , minTotal BIGINT GENERATED ALWAYS AS (minValue + minFee) STORED
     , PRIMARY KEY (paymentId)
     , CONSTRAINT FK_insufficentFuns_payments FOREIGN KEY (paymentId) 
         REFERENCES payments(paymentId)

@@ -1,8 +1,9 @@
+from datetime import datetime
+import os
 import sys
 import time
 import traceback
 from typing import Dict
-from datetime import datetime
 import asset
 import blockfrost
 import cardanocli
@@ -13,6 +14,8 @@ import payment
 from utxo import Utxo
 
 def vend():
+    set_environment()
+
     addresses = config.config("address")
     receive_addr = addresses["receive_addr"]
     lovelace_to_packtypes = data.get_pack_types_dict()
@@ -61,7 +64,9 @@ def process_utxo(utxo: Utxo, lovelace_to_packtypes: Dict[int, PackType]):
                 payment.return_payment(payment_id, payment_addr, utxo)
                 return
 
-            payment.send_pack(pack_id, payment_id, payment_addr, utxo)
+            data.update_pack_paymentid(pack_id, payment_id)
+            tx_id = payment.send_pack(pack_id, payment_id, payment_addr, utxo)
+            data.update_pack_mintingtxid(pack_id, tx_id)
         except:
             #TODO: Log exception with payment
             print(traceback.format_exc())
@@ -69,6 +74,10 @@ def process_utxo(utxo: Utxo, lovelace_to_packtypes: Dict[int, PackType]):
         # erroring here is unlikley but we don't want to block the utxo loop
         print(traceback.format_exc())
 
+def set_environment():
+    environment = config.config("environment")
+    for key in environment:
+        os.environ[key.upper()] = environment[key]
 
 def update_print():
     old_f = sys.stdout
