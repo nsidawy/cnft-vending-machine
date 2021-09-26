@@ -87,17 +87,18 @@ def build_txn(
         , outputs: List[Tuple[str, List[Asset]]]
         , fee: int
         , tx_draft_path: str
-        , minting_assets: List[Asset]
+        , mint_def
     ):
     tx_out_tuples = [["--tx-out", f"{output[0]}+{get_multi_asset_str(output[1])}"] for output in outputs]
     tx_outs = [item for sublist in tx_out_tuples for item in sublist]
     mint_args = []
-    if len(minting_assets) > 0:
+    if mint_def is not None:
         mint_args.append("--mint")
-        mint_args.append(get_multi_asset_str(minting_assets))
-
-        minting_script_path = config.config("minting")["script_path"]
+        mint_args.append(get_multi_asset_str(mint_def["assets"]))
+        mint_args.append("--metadata-json-file")
+        mint_args.append(mint_def["metadata_path"])
         mint_args.append("--mint-script-file")
+        minting_script_path = config.config("minting")["script_path"]
         mint_args.append(minting_script_path)
 
     process = subprocess.run([
