@@ -62,7 +62,8 @@ def process_utxo(utxo: Utxo, lovelace_to_packtypes: Dict[int, PackType]):
             pack_id = data.get_pack_to_sell(bought_pack.pack_type_id)
             if pack_id is None:
                 print(f"No more packs remaining: {bought_pack}")
-                payment.return_payment(payment_id, payment_addr, utxo)
+                tx_id = payment.return_payment(payment_id, payment_addr, utxo)
+                data.insert_payment_refund(payment_id, tx_id)
                 return
 
             data.update_pack_paymentid(pack_id, payment_id)
