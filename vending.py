@@ -55,7 +55,8 @@ def process_utxo(utxo: Utxo, lovelace_to_packtypes: Dict[int, PackType]):
             # handle incorrect payment amount
             if bought_pack is None:
                 print(f"Payment {payment_id} did not submit a valid payment amount: {utxo.lovelace.amount}")
-                payment.return_payment(payment_id, payment_addr, utxo)
+                tx_id = payment.return_payment(payment_id, payment_addr, utxo)
+                data.insert_payment_refund(payment_id, tx_id)
                 return
 
             pack_id = data.get_pack_to_sell(bought_pack.pack_type_id)
@@ -70,6 +71,7 @@ def process_utxo(utxo: Utxo, lovelace_to_packtypes: Dict[int, PackType]):
         except:
             #TODO: Log exception with payment
             print(traceback.format_exc())
+            data.insert_error_log(payment_id, traceback.format_exc())
     except:
         # erroring here is unlikley but we don't want to block the utxo loop
         print(traceback.format_exc())

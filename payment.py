@@ -1,5 +1,6 @@
 from typing import List
 from asset import Asset
+from itertools import groupby
 import cardanocli
 import config
 import data
@@ -41,7 +42,6 @@ def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
     receive_skey_path = config.config("payment_keys")["receive_skey_path"]
     cardanocli.sign_txn(tx_raw_path, tx_signed_path, [receive_skey_path])
     tx_id = cardanocli.submit_txn(tx_signed_path)
-    data.insert_payment_refund(payment_id, tx_id)
     print(f"Payment {payment_id} refunded w/ txn {tx_id}.")
 
     return tx_id
@@ -100,7 +100,6 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
 
     cardanocli.sign_txn(tx_raw_path, tx_signed_path, [receive_skey_path, minting_skey_path])
     tx_id = cardanocli.submit_txn(tx_signed_path)
-    data.insert_payment_refund(payment_id, tx_id)
     print(f"Payment {payment_id} sent pack {pack_id} w/ txn {tx_id}.")
 
     return tx_id
@@ -108,9 +107,15 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
 def create_metadata_file(path: str, nfts: List[Nft]):
     with open(path, 'w') as metadata_file:
         metadata_file.write(f"""{{
-            \"721\": {{
-                \"{nfts[0].policy_id}\": {{""")
+            \"721\": {{""")
         
-        entries = [f"\"{nft.asset_name}\": {nft.metadata_json}\n" for nft in nfts]
-        metadata_file.write(",".join(entries))
-        metadata_file.write(f"}} }} }}")
+        for policy_id, assets in groupby(nfts, lambda n: n.policy_id):
+            metadata_file.write(f"\"{nfts[0].policy_id}\": {{")
+            entries = []
+            for asset_name, ns in groupby(assets, lambda n: n.asset_name):
+                n = list(ns)[0]
+                entries.append(f"\"{n.asset_name}\": {n.metadata_json}\n")
+            metadata_file.write(",".join(entries))
+            metadata_file.write(f"}}")
+
+        metadata_file.write(f"}} }}")

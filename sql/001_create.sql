@@ -24,7 +24,6 @@ CREATE TABLE payments (
     , lovelace BIGINT NOT NULL
     , otherAssets VARCHAR(4096) NOT NULL
     , paymentAddress VARCHAR(128) NOT NULL
-    , refundTxId VARCHAR(64) NULL
     , PRIMARY KEY (paymentId)
     , CONSTRAINT UQ_payments UNIQUE (txId, indexId)
 );

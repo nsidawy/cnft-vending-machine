@@ -103,6 +103,13 @@ def insert_insufficient_funds_for_return(payment_id: int, min_value: int, min_fe
         SELECT {payment_id}, {min_value}, {min_fee}
     """)
 
+def insert_error_log(payment_id: int, error_message: str):
+    escaped = error_message.replace("'", "''")
+    results = pquery.write(f"""
+        INSERT INTO errorLog(paymentId, errorMessage)
+        SELECT {payment_id}, '{escaped}'
+    """)
+
 def get_pack_types_dict():
     results = pquery.read("""
         SELECT packTypeId, description, lovelaceCost
