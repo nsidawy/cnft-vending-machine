@@ -13,8 +13,9 @@ from packtype import PackType
 import payment
 from utxo import Utxo
 
-def vend():
+def vend(config_path: str):
     set_environment()
+    config.set_config_file(config_path)
 
     addresses = config.config("address")
     receive_addr = addresses["receive_addr"]
