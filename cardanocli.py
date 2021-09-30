@@ -1,3 +1,4 @@
+import json
 import subprocess
 from typing import List, Tuple
 from utxo import Utxo
@@ -39,6 +40,16 @@ def get_utxos(address) -> List[Utxo]:
 
     return utxos
 
+def get_tip_slot() -> int:
+    process = subprocess.run([
+            "cardano-cli", "query", "tip"]
+            + get_net_cli_arg()
+        , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    if process.returncode != 0:
+        raise Exception(f'Error getting tx ID for signed tx file {signed_tx_path}\n{process.stderr.decode("UTF-8")}')
+
+    return json.loads(process.stdout.decode("UTF-8").strip())["slot"]
+
 def get_tx_id(signed_tx_path) -> str:
     process = subprocess.run([
             "cardano-cli", "transaction", "txid"
@@ -65,7 +76,6 @@ def calculate_min_value(assets: List[Asset]) -> int:
     return min_value
 
 def calculate_min_fee(tx_body_file: str, tx_in_count: int, tx_out_count: int, witness_count: int) -> int:
-
     process = subprocess.run([
             "cardano-cli", "transaction", "calculate-min-fee"
             , "--protocol-params-file", get_protocol_params_path()
@@ -105,6 +115,7 @@ def build_txn(
             "cardano-cli", "transaction", "build-raw"
             , "--tx-in", f"{utxo.tx_id}#{utxo.index_id}"
             , "--fee", str(fee)
+            , "--invalid-hereafter", str(get_tip_slot() + 300)
             , "--out-file", tx_draft_path]
             + tx_outs
             + mint_args

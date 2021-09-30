@@ -49,7 +49,7 @@ def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
 def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
     print(f"Sending pack {pack_id} for payment {payment_id}")
 
-    tx_draft_path = f"/tmp/txn_mint{payment_id}.draft"
+    tx_draft_path = f"/tmp/txn_mint_{payment_id}.draft"
     tx_raw_path = f"/tmp/txn_mint_{payment_id}.raw"
     tx_signed_path = f"/tmp/txn_mint_{payment_id}.signed"
     tx_metadata_path = f"/tmp/txn_mint_{payment_id}.json"
