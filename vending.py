@@ -28,6 +28,7 @@ def vend(config_path: str):
             utxos = cardanocli.get_utxos(receive_addr)
             for utxo in utxos:
                 process_utxo(utxo, lovelace_to_packtypes)
+                time.sleep(2)
         except:
             print(traceback.format_exc())
 
