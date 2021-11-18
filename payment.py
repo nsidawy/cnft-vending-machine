@@ -16,7 +16,7 @@ def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
     tx_signed_path = f"/tmp/txn_refund_{payment_id}.signed"
 
     all_utxo_assets = [utxo.lovelace] + utxo.other_assets
-    min_return_lovelace = cardanocli.calculate_min_value(all_utxo_assets)
+    min_return_lovelace = cardanocli.calculate_min_value(payment_addr, all_utxo_assets)
     cardanocli.build_txn(
         utxo,
         [(payment_addr, all_utxo_assets)],
@@ -65,7 +65,7 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
         raise Exception(f"Pack {pack_id} has no NFTs assigned to it")
 
     pack_assets = [nft_to_asset(n) for n in pack_nfts]
-    min_send_lovelace = cardanocli.calculate_min_value(pack_assets)
+    min_send_lovelace = cardanocli.calculate_min_value(payment_addr, pack_assets)
     send_assets = [Asset("lovelace", min_send_lovelace)] + pack_assets
     treasury_lovelace = Asset("lovelace", utxo.lovelace.amount - min_send_lovelace)
     mint_def = { 'assets': pack_assets, 'metadata_path': tx_metadata_path }

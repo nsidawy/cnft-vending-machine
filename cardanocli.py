@@ -60,13 +60,13 @@ def get_tx_id(signed_tx_path) -> str:
 
     return process.stdout.decode("UTF-8").strip()
 
-def calculate_min_value(assets: List[Asset]) -> int:
+def calculate_min_value(address: str, assets: List[Asset]) -> int:
     multi_asset = get_multi_asset_str(assets)
 
     process = subprocess.run([
-            "cardano-cli", "transaction", "calculate-min-value"
+            "cardano-cli", "transaction", "calculate-min-required-utxo"
             , "--protocol-params-file", get_protocol_params_path()
-            , "--multi-asset", multi_asset]
+            , "--tx-out", f'{address} {multi_asset}']
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error calculating min value for assets {assets}\n{process.stderr.decode("UTF-8")}')
