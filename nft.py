@@ -14,5 +14,6 @@ class Nft:
         return str(self)
 
 def nft_to_asset(nft: Nft) -> Asset:
-    hexAssetName = nft.asset_name.encode("UTF-8").hex()
-    return Asset(f"{nft.policy_id}.{hexAssetName}", 1)
+    #hexAssetName = nft.asset_name.encode("UTF-8").hex()
+    #return Asset(f"{nft.policy_id}.{hexAssetName}", 1)
+    return Asset(f"{nft.policy_id}.{asset_name}", 1)
