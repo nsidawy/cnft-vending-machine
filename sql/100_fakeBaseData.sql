@@ -18,3 +18,7 @@ SELECT 1, 1
 UNION ALL SELECT 2, 2
 UNION ALL SELECT 2, 3
 UNION ALL SELECT 2, 4;
+
+INSERT INTO treasuries (address,sharePercent)
+VALUES ('addr_test1qqwltpc0790swxldlqdp7rg7z9r0rat3kl32vhk6sgmgm6f3p5mx9t4n86t2gev4uvkdsldaa3tma8rcea7ve3re3zkqru95gy', 0.6)
+    , ('addr_test1qre4g9zdak8ya7cestlazgvmrxt0kyq0u8jwnwjhxl4gcr33p5mx9t4n86t2gev4uvkdsldaa3tma8rcea7ve3re3zkqjwyf7u', 0.4);

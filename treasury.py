@@ -33,10 +33,10 @@ def get_treasuries() -> List[Treasury]:
 
 # Splits up lovelace amount across treasury addresses by share percent.
 def get_outputs(treasuries: List[Treasury], lovelace: int) -> List[Tuple[str, List[Asset]]]:
-    outputs = [(t.address, Asset("lovelace", int(t.share_percent * lovelace))) for t in treasuries]
+    outputs = [(t.address, [Asset("lovelace", int(t.share_percent * lovelace))]) for t in treasuries]
 
-    remainder = lovelace - sum([o[1].amount for o in outputs])
+    remainder = lovelace - sum([o[1][0].amount for o in outputs])
     if remainder > 0:
-        outputs[0] = (outputs[0][0], Asset("lovelace", outputs[0][1].amount + remainder))
+        outputs[0] = (outputs[0][0], [Asset("lovelace", outputs[0][1].amount + remainder)])
 
     return outputs
