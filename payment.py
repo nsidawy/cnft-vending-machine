@@ -5,15 +5,18 @@ import cardanocli
 import config
 import data
 from nft import Nft, nft_to_asset
+import os
+import treasury
 from utxo import Utxo
 
 #TODO return a payment result
 def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
     print(f"Returning payment {payment_id} {utxo}")
     
-    tx_draft_path = f"/tmp/txn_refund_{payment_id}.draft"
-    tx_raw_path = f"/tmp/txn_refund_{payment_id}.raw"
-    tx_signed_path = f"/tmp/txn_refund_{payment_id}.signed"
+    pid = os.getpid()
+    tx_draft_path = f"/tmp/txn_refund_{payment_id}_{pid}.draft"
+    tx_raw_path = f"/tmp/txn_refund_{payment_id}_{pid}.raw"
+    tx_signed_path = f"/tmp/txn_refund_{payment_id_{pid}}.signed"
 
     all_utxo_assets = [utxo.lovelace] + utxo.other_assets
     min_return_lovelace = cardanocli.calculate_min_value(payment_addr, all_utxo_assets)
@@ -49,15 +52,17 @@ def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
 def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
     print(f"Sending pack {pack_id} for payment {payment_id}")
 
-    tx_draft_path = f"/tmp/txn_mint_{payment_id}.draft"
-    tx_raw_path = f"/tmp/txn_mint_{payment_id}.raw"
-    tx_signed_path = f"/tmp/txn_mint_{payment_id}.signed"
-    tx_metadata_path = f"/tmp/txn_mint_{payment_id}.json"
-    treasury_addr = config.config("address")["treasury_addr"]
+    pid = os.getpid()
+    tx_draft_path = f"/tmp/txn_mint_{payment_id}_{pid}.draft"
+    tx_raw_path = f"/tmp/txn_mint_{payment_id}_{pid}.raw"
+    tx_signed_path = f"/tmp/txn_mint_{payment_id}_{pid}.signed"
+    tx_metadata_path = f"/tmp/txn_mint_{payment_id}_{pid}.json"
 
     payment_keys = config.config("payment_keys")
     receive_skey_path = payment_keys["receive_skey_path"]
     minting_skey_path = payment_keys["minting_skey_path"]
+
+    treasuries = treasury.get_treasuries()
 
     # get packs
     pack_nfts = data.get_pack_nfts(pack_id)
@@ -67,7 +72,7 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
     pack_assets = [nft_to_asset(n) for n in pack_nfts]
     min_send_lovelace = cardanocli.calculate_min_value(payment_addr, pack_assets)
     send_assets = [Asset("lovelace", min_send_lovelace)] + pack_assets
-    treasury_lovelace = Asset("lovelace", utxo.lovelace.amount - min_send_lovelace)
+    treasury_outputs = treasury.get_outputs(treasuries, utxo.lovelace.amount - min_send_lovelace)
     mint_def = { 'assets': pack_assets, 'metadata_path': tx_metadata_path }
     print(f"Assets to send {send_assets}") 
 
@@ -77,10 +82,7 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
     # calculate min fee
     cardanocli.build_txn(
         utxo,
-        [
-            (payment_addr, send_assets)
-            , (treasury_addr, [treasury_lovelace] + utxo.other_assets)
-        ],
+        [(payment_addr, send_assets)] + treasury_outputs,
         0,
         tx_draft_path,
         mint_def)
