@@ -31,6 +31,7 @@ def get_treasuries() -> List[Treasury]:
         raise Exception(f"Sum of treasury shares does not equal 100% (1.0)\n{treasuries}")
     return treasuries
 
+# Splits up lovelace amount across treasury addresses by share perecent.
 def get_outputs(treasuries: List[Treasury], lovelace: int) -> List[Tuple[str, List[Asset]]]:
     outputs = [(t.address, Asset("lovelace", int(t.share_percent * lovelace))) for t in treasuries]
 
