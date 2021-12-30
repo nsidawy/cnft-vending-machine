@@ -1,4 +1,5 @@
 import json
+from packaging import version
 import subprocess
 from typing import List, Tuple
 from utxo import Utxo
@@ -12,8 +13,15 @@ def get_net_cli_arg():
     else:
         return ["--mainnet"]
 
-def get_protocol_params_path():
+def get_protocol_params_path() -> str:
     return config.config("params_file")["path"]
+
+def get_cli_version() -> version.Version:
+    process = subprocess.run(["cardano-cli", "version"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    if process.returncode != 0:
+        raise Exception(f'Error getting tx ID for signed tx file {signed_tx_path}\n{process.stderr.decode("UTF-8")}')
+
+    return version.parse(process.stdout.decode("UTF-8").split(" ")[1])
 
 def get_utxos(address) -> List[Utxo]:
     process = subprocess.run([
