@@ -16,7 +16,7 @@ def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
     pid = os.getpid()
     tx_draft_path = f"/tmp/txn_refund_{payment_id}_{pid}.draft"
     tx_raw_path = f"/tmp/txn_refund_{payment_id}_{pid}.raw"
-    tx_signed_path = f"/tmp/txn_refund_{payment_id_{pid}}.signed"
+    tx_signed_path = f"/tmp/txn_refund_{payment_id}_{pid}.signed"
 
     all_utxo_assets = [utxo.lovelace] + utxo.other_assets
     min_return_lovelace = cardanocli.calculate_min_value(payment_addr, all_utxo_assets)
