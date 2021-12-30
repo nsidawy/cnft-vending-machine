@@ -37,6 +37,6 @@ def get_outputs(treasuries: List[Treasury], lovelace: int) -> List[Tuple[str, Li
 
     remainder = lovelace - sum([o[1][0].amount for o in outputs])
     if remainder > 0:
-        outputs[0] = (outputs[0][0], [Asset("lovelace", outputs[0][1].amount + remainder)])
+        outputs[0] = (outputs[0][0], [Asset("lovelace", outputs[0][1][0].amount + remainder)])
 
     return outputs
