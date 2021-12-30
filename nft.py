@@ -16,7 +16,7 @@ class Nft:
         return str(self)
 
 def nft_to_asset(nft: Nft) -> Asset:
-    if cardanocli.get_cli_version() >= version.parse("1.32.1"):
+    if cardanocli.get_cli_version() >= version.Version("1.32.1"):
         hexAssetName = nft.asset_name.encode("UTF-8").hex()
         return Asset(f"{nft.policy_id}.{hexAssetName}", 1)
 

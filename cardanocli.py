@@ -21,7 +21,7 @@ def get_cli_version() -> version.Version:
     if process.returncode != 0:
         raise Exception(f'Error getting CLI version.\n{process.stderr.decode("UTF-8")}')
 
-    return version.parse(process.stdout.decode("UTF-8").split(" ")[1])
+    return version.Version(process.stdout.decode("UTF-8").split(" ")[1])
 
 def get_utxos(address) -> List[Utxo]:
     process = subprocess.run([
@@ -54,7 +54,7 @@ def get_tip_slot() -> int:
             + get_net_cli_arg()
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
-        raise Exception(f'Error getting tx ID for signed tx file {signed_tx_path}\n{process.stderr.decode("UTF-8")}')
+        raise Exception(f'Error getting cardano tip\n{process.stderr.decode("UTF-8")}')
 
     return json.loads(process.stdout.decode("UTF-8").strip())["slot"]
 
