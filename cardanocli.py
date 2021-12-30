@@ -19,7 +19,7 @@ def get_protocol_params_path() -> str:
 def get_cli_version() -> version.Version:
     process = subprocess.run(["cardano-cli", "version"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
-        raise Exception(f'Error getting tx ID for signed tx file {signed_tx_path}\n{process.stderr.decode("UTF-8")}')
+        raise Exception(f'Error getting CLI version.\n{process.stderr.decode("UTF-8")}')
 
     return version.parse(process.stdout.decode("UTF-8").split(" ")[1])
 
