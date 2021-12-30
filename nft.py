@@ -1,4 +1,6 @@
 from asset import Asset
+from packaging import version
+import cardanocli
 
 class Nft:
     def __init__(self, nft_id: str, policy_id: str, asset_name: str, metadata_json: str):
@@ -14,6 +16,8 @@ class Nft:
         return str(self)
 
 def nft_to_asset(nft: Nft) -> Asset:
-    #hexAssetName = nft.asset_name.encode("UTF-8").hex()
-    #return Asset(f"{nft.policy_id}.{hexAssetName}", 1)
+    if cardanocli.get_cli_version() >= version.parse("1.32.1"):
+        hexAssetName = nft.asset_name.encode("UTF-8").hex()
+        return Asset(f"{nft.policy_id}.{hexAssetName}", 1)
+
     return Asset(f"{nft.policy_id}.{nft.asset_name}", 1)
