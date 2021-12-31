@@ -110,17 +110,6 @@ def insert_error_log(payment_id: int, error_message: str):
         SELECT {payment_id}, '{escaped}'
     """)
 
-def get_pack_types_dict():
-    results = pquery.read("""
-        SELECT packTypeId, description, lovelaceCost
-        FROM packTypes
-    """)
-
-    if len(results) == 0:
-        raise Exception("packtypes table is empty")
-
-    return {packtype[2]: PackType(packtype[0], packtype[1], packtype[2]) for packtype in results}
-
 def get_pack_to_sell(pack_type_id) -> Optional[int]:
     results = pquery.read(f"""
         SELECT packId
