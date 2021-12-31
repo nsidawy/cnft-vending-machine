@@ -9,32 +9,33 @@ import blockfrost
 import cardanocli
 import config
 import data
-from packtype import PackType
+import packtype
 import payment
 from utxo import Utxo
+import vendingaddress
 
 def vend(config_path: str):
     config.set_config_file(config_path)
     set_environment()
 
-    addresses = config.config("address")
-    receive_addr = addresses["receive_addr"]
-    lovelace_to_packtypes = data.get_pack_types_dict()
+    vending_addresses = vendingaddress.get_vending_addresses()
+    vending_to_packtypes_dict = {v.id: packtype.get_packtypes_dict(v) for v in vending_addresses}
 
-    print(f"Packs for sale:\n{lovelace_to_packtypes}")
+    print(f"Packs for sale:\n{vending_to_packtypes_dict}")
 
     while True:
         try:
-            utxos = cardanocli.get_utxos(receive_addr)
-            for utxo in utxos:
-                process_utxo(utxo, lovelace_to_packtypes)
-                time.sleep(2)
+            for v in vending_addresses:
+                utxos = cardanocli.get_utxos(v.address)
+                for utxo in utxos:
+                    process_utxo(utxo, v, vending_to_packtypes_dict[v.id])
+                    time.sleep(2)
         except:
             print(traceback.format_exc())
 
         time.sleep(5)
 
-def process_utxo(utxo: Utxo, lovelace_to_packtypes: Dict[int, PackType]):
+def process_utxo(utxo: Utxo, vending_address: vendingaddress.VendingAddress, lovelace_to_packtypes: Dict[int, packtype.PackType]):
     try:
         payment_addr = blockfrost.get_tx_payment_addr(utxo.tx_id)
         # get payment ID
@@ -57,19 +58,19 @@ def process_utxo(utxo: Utxo, lovelace_to_packtypes: Dict[int, PackType]):
             # handle incorrect payment amount
             if bought_pack is None:
                 print(f"Payment {payment_id} did not submit a valid payment amount: {utxo.lovelace.amount}")
-                tx_id = payment.return_payment(payment_id, payment_addr, utxo)
+                tx_id = payment.return_payment(payment_id, payment_addr, vending_address, utxo)
                 data.insert_payment_refund(payment_id, tx_id)
                 return
 
             pack_id = data.get_pack_to_sell(bought_pack.pack_type_id)
             if pack_id is None:
                 print(f"No more packs remaining: {bought_pack}")
-                tx_id = payment.return_payment(payment_id, payment_addr, utxo)
+                tx_id = payment.return_payment(payment_id, payment_addr, vending_address, utxo)
                 data.insert_payment_refund(payment_id, tx_id)
                 return
 
             data.update_pack_paymentid(pack_id, payment_id)
-            tx_id = payment.send_pack(pack_id, payment_id, payment_addr, utxo)
+            tx_id = payment.send_pack(pack_id, payment_id, payment_addr, vending_address, utxo)
             data.update_pack_mintingtxid(pack_id, tx_id)
         except:
             #TODO: Log exception with payment

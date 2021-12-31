@@ -1,7 +1,10 @@
-INSERT INTO packtypes(packTypeId, description, lovelaceCost)
-SELECT 1, 'Test1', 3000000
-UNION ALL SELECT 2, 'Test2', 25000000
-UNION ALL SELECT 3, 'Test3', 333000000;
+INSERT INTO vendingAddresses (vendingAddressId, address, signingKeyPath)
+VALUES (1, 'addr_test1vqxc7z6s6rj3y5xteemduvhfz8t53csakgu0q9nl3zam9ng9rnnzp', 'cardano/receive.skey');
+
+INSERT INTO packtypes(packTypeId, description, lovelaceCost, vendingAddressId)
+SELECT 1, 'Test1', 3000000, 1
+UNION ALL SELECT 2, 'Test2', 25000000, 1
+UNION ALL SELECT 3, 'Test3', 333000000, 1;
 
 INSERT INTO nfts (policyId, assetName, metadataJson)
 SELECT '424deb9056d16add0ae37cc654f8f4ae17e99efa9dd9fe5f8df1823c', 'NFT6', '{"name": "NFT5", "description": "Test", "image": "ipfs://QmPtr2FfkEDc2xg4VN6kWm5dLxxGXkJF3XWykd4NZrR4qS", "mediaType": "image/png"}' 
