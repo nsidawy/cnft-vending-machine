@@ -21,6 +21,7 @@ def vend(config_path: str):
     vending_addresses = vendingaddress.get_vending_addresses()
     vending_to_packtypes_dict = {v.id: packtype.get_packtypes_dict(v) for v in vending_addresses}
 
+    print(f"Vending addresses:\n{vending_addresses}")
     print(f"Packs for sale:\n{vending_to_packtypes_dict}")
 
     while True:
@@ -29,7 +30,6 @@ def vend(config_path: str):
                 utxos = cardanocli.get_utxos(v.address)
                 for utxo in utxos:
                     process_utxo(utxo, v, vending_to_packtypes_dict[v.id])
-                    time.sleep(2)
         except:
             print(traceback.format_exc())
 
