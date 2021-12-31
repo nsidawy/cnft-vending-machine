@@ -1,8 +1,9 @@
+from typing import Optional
 import pquery
 from vendingaddress import VendingAddress
 
 class PackType:
-    def __init__(self, pack_type_id: str, description: str, lovelace_cost: int, vending_address_id: int):
+    def __init__(self, pack_type_id: str, description: str, lovelace_cost: int, vending_address_id: Optional[int]):
         self.pack_type_id = pack_type_id
         self.description = description
         self.lovelace_cost = lovelace_cost
