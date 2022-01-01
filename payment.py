@@ -8,16 +8,19 @@ from nft import Nft, nft_to_asset
 import os
 import treasury
 from utxo import Utxo
+from vendingaddress import VendingAddress
 
 #TODO return a payment result
-def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
+def return_payment(payment_id: int, payment_addr: str, vending_address: VendingAddress, utxo: Utxo):
     print(f"Returning payment {payment_id} {utxo}")
     
+    # define txn file paths
     pid = os.getpid()
     tx_draft_path = f"/tmp/txn_refund_{payment_id}_{pid}.draft"
     tx_raw_path = f"/tmp/txn_refund_{payment_id}_{pid}.raw"
     tx_signed_path = f"/tmp/txn_refund_{payment_id}_{pid}.signed"
 
+    # calculate min ada for fees & refund utxo
     all_utxo_assets = [utxo.lovelace] + utxo.other_assets
     min_return_lovelace = cardanocli.calculate_min_value(payment_addr, all_utxo_assets)
     cardanocli.build_txn(
@@ -42,25 +45,21 @@ def return_payment(payment_id: int, payment_addr: str, utxo: Utxo):
         tx_raw_path,
         None)
 
-    receive_skey_path = config.config("payment_keys")["receive_skey_path"]
-    cardanocli.sign_txn(tx_raw_path, tx_signed_path, [receive_skey_path])
+    cardanocli.sign_txn(tx_raw_path, tx_signed_path, [vending_address.signing_key_path])
     tx_id = cardanocli.submit_txn(tx_signed_path)
     print(f"Payment {payment_id} refunded w/ txn {tx_id}.")
 
     return tx_id
 
-def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
+def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address: VendingAddress, utxo: Utxo):
     print(f"Sending pack {pack_id} for payment {payment_id}")
 
+    # define txn file paths
     pid = os.getpid()
     tx_draft_path = f"/tmp/txn_mint_{payment_id}_{pid}.draft"
     tx_raw_path = f"/tmp/txn_mint_{payment_id}_{pid}.raw"
     tx_signed_path = f"/tmp/txn_mint_{payment_id}_{pid}.signed"
     tx_metadata_path = f"/tmp/txn_mint_{payment_id}_{pid}.json"
-
-    payment_keys = config.config("payment_keys")
-    receive_skey_path = payment_keys["receive_skey_path"]
-    minting_skey_path = payment_keys["minting_skey_path"]
 
     treasuries = treasury.get_treasuries()
 
@@ -69,22 +68,22 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, utxo: Utxo):
     if len(pack_nfts) == 0:
         raise Exception(f"Pack {pack_id} has no NFTs assigned to it")
 
-    pack_assets = [nft_to_asset(n) for n in pack_nfts]
-    min_send_lovelace = cardanocli.calculate_min_value(payment_addr, pack_assets)
-
-    send_assets = [Asset("lovelace", min_send_lovelace)] + pack_assets
-    vending_output = [(payment_addr, send_assets)]
-    treasury_outputs = treasury.get_outputs(treasuries, utxo.lovelace.amount - min_send_lovelace)
-    outputs = vending_output + treasury_outputs
-
-    signing_keys = [receive_skey_path, minting_skey_path]
-    mint_def = { 'assets': pack_assets, 'metadata_path': tx_metadata_path }
-    print(f"Assets to send {send_assets}") 
-
     # write metadata
     create_metadata_file(tx_metadata_path, pack_nfts)
 
-    # calculate min fee
+    # calculate min ada for fees & pack utxo
+    pack_assets = [nft_to_asset(n) for n in pack_nfts]
+    min_send_lovelace = cardanocli.calculate_min_value(payment_addr, pack_assets)
+
+    assets_to_send = [Asset("lovelace", min_send_lovelace)] + pack_assets
+    vending_output = [(payment_addr, assets_to_send)]
+    treasury_outputs = treasury.get_outputs(treasuries, utxo.lovelace.amount - min_send_lovelace)
+    outputs = vending_output + treasury_outputs
+
+    minting_skey_path = config.config("payment_keys")["minting_skey_path"]
+    signing_keys = [vending_address.signing_key_path, minting_skey_path]
+    mint_def = { 'assets': pack_assets, 'metadata_path': tx_metadata_path }
+    print(f"Assets to send: {assets_to_send}") 
     cardanocli.build_txn(
         utxo,
         outputs,

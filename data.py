@@ -56,7 +56,8 @@ def update_pack_mintingtxid(pack_id: int, minting_tx_id: str):
         WHERE packId = {pack_id};
     """)
 
-def insert_payment(tx_id: str, index_id: int, lovelace: int, other_assets: List[Asset], payment_address: str) -> int:
+def insert_payment(tx_id: str, index_id: int, lovelace: int, other_assets: List[Asset], payment_address: str, vending_address_id: Optional[int]) -> int:
+    vending_address_id_sql = "NULL" if vending_address_id is None else str(vending_address_id)
     pquery.write(f"""
         INSERT INTO payments (
             txId
@@ -64,12 +65,14 @@ def insert_payment(tx_id: str, index_id: int, lovelace: int, other_assets: List[
             , lovelace
             , otherAssets
             , paymentAddress
+            , vendingAddressId
         )
         SELECT '{tx_id}'
             , {index_id}
             , {lovelace}
             , '{get_multi_asset_str(other_assets)}'
             , '{payment_address}'
+            , {vending_address_id_sql}
     """)
 
     return pquery.read(f"""
@@ -109,17 +112,6 @@ def insert_error_log(payment_id: int, error_message: str):
         INSERT INTO errorLog(paymentId, errorMessage)
         SELECT {payment_id}, '{escaped}'
     """)
-
-def get_pack_types_dict():
-    results = pquery.read("""
-        SELECT packTypeId, description, lovelaceCost
-        FROM packTypes
-    """)
-
-    if len(results) == 0:
-        raise Exception("packtypes table is empty")
-
-    return {packtype[2]: PackType(packtype[0], packtype[1], packtype[2]) for packtype in results}
 
 def get_pack_to_sell(pack_type_id) -> Optional[int]:
     results = pquery.read(f"""
