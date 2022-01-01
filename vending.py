@@ -46,7 +46,8 @@ def process_utxo(utxo: Utxo, vending_address: vendingaddress.VendingAddress, lov
                 , utxo.index_id
                 , utxo.lovelace.amount
                 , utxo.other_assets
-                , payment_addr)
+                , payment_addr
+                , vending_address.id)
             print(f"Inserted new payment {payment_id} for {utxo.tx_id}#{utxo.index_id}")
         else:
             #TODO: Check if the payment is handled already. if so then continue to next tuxo

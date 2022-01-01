@@ -17,3 +17,10 @@ ADD COLUMN vendingAddressId INT NULL;
 ALTER TABLE packTypes
 ADD CONSTRAINT FK_packTypes_vendingAddresses 
     FOREIGN KEY (vendingAddressId) REFERENCES vendingAddresses (vendingAddressId);
+
+ALTER TABLE payments
+ADD COLUMN vendingAddressId INT NULL;
+
+ALTER TABLE payments
+ADD CONSTRAINT FK_payments_vendingAddresses 
+    FOREIGN KEY (vendingAddressId) REFERENCES vendingAddresses (vendingAddressId);
