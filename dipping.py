@@ -31,42 +31,37 @@ def vend(config_path: str):
 
 def process_utxo(utxo: Utxo):
     try:
-        #payment_addr = blockfrost.get_tx_payment_addr(utxo.tx_id)
-        ## get payment ID
-        #payment_id = data.get_payment_id(utxo.tx_id, utxo.index_id)
-        #if payment_id is None:
-        #    payment_id = data.insert_payment(
-        #        utxo.tx_id
-        #        , utxo.index_id
-        #        , utxo.lovelace.amount
-        #        , utxo.other_assets
-        #        , payment_addr
-        #        , vending_address.id)
-        #    print(f"Inserted new payment {payment_id} for {utxo.tx_id}#{utxo.index_id}")
-        #else:
-        #    #TODO: Check if the payment is handled already. if so then continue to next tuxo
-        #    return
-        # require a minimum of 5 ada
-        min_lovelace = 5000000
-        if utxo.lovelace.amount < min_lovelace:
-            print(f'Dipping payment does not have enough lovelace ({utxo.lovelace}, minimum: {min_lovelace}).') 
-            #TODO return payment
-            return 
-
-        dipping_nfts = get_nugget_and_sauce(utxo)
-        if dipping_nfts is None:
-            print(f'Utxo does not have valid nugget and sauce NFT')
-            #TODO return payment
-            return 
-        (nugget, sauce) = dupping_nfts
-        dipping_index = get_dipping_index(nugget)
-        if dipping_index is None:
-            print('Nugget has been double-dipped.')
-            #TODO return payment
-            return 
+        payment_addr = blockfrost.get_tx_payment_addr(utxo.tx_id)
+        # get payment ID
+        payment_id = data.get_payment_id(utxo.tx_id, utxo.index_id)
+        if payment_id is None:
+            payment_id = data.insert_payment(
+                utxo.tx_id
+                , utxo.index_id
+                , utxo.lovelace.amount
+                , utxo.other_assets
+                , payment_addr
+                , None)
+            print(f"Inserted new payment {payment_id} for {utxo.tx_id}#{utxo.index_id}")
+        else:
+            #TODO: Check if the payment is handled already. if so then continue to next tuxo
+            return
 
         try:
-            print("wip")
+            # require a minimum of 5 ada
+            min_lovelace = 5000000
+            if utxo.lovelace.amount < min_lovelace:
+                print(f'Dipping payment does not have enough lovelace ({utxo.lovelace}, minimum: {min_lovelace}).') 
+                #TODO return payment
+                return 
+
+            dipping_parameters = get_dipping_parameters(utxo)
+            if dipping_parameters is None:
+                #TODO return payment
+                return
+
+            # execute the dip
+            dipped_nft = execute_dip(dipping_parameters)
         except:
             #TODO: Log exception with payment
             print(traceback.format_exc())
@@ -74,6 +69,20 @@ def process_utxo(utxo: Utxo):
     except:
         # erroring here is unlikley but we don't want to block the utxo loop
         print(traceback.format_exc())
+
+def get_dipping_parameters(utxo: Utxo) -> Optional[Tuple[nft.Nft, nft.Nft, int]]:
+    # get dipping information from utxo
+    dipping_nfts = get_nugget_and_sauce(utxo)
+    if dipping_nfts is None:
+        print(f'Utxo does not have valid nugget and sauce NFT')
+        return None
+    (nugget, sauce) = dipping_nfts
+    dipping_index = get_dipping_index(nugget)
+    if dipping_index is None:
+        print('Nugget has been double-dipped.')
+        return None
+
+    return (nugget, sauce, dipping_index)
 
 def get_nugget_and_sauce(utxo: Utxo) -> Optional[Tuple[nft.Nft, nft.Nft]]:
     # require exactly 2 dipping assets
@@ -115,6 +124,10 @@ def get_dipping_index(nugget: nft.Nft) -> Optional[int]:
     elif metadata['attributes']['Sauce 2'] == 'None':
         return 1
     return None
+
+def execute_dip(dipping_params: Tuple[nft.Nft, nft.Nft, int]) -> nft.Nft:
+    (nugget, sauce, dipping_index) = dipping_params
+    return nugget
 
 def set_environment():
     environment = config.config("environment")

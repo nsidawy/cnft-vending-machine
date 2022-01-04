@@ -11,7 +11,7 @@ from utxo import Utxo
 from vendingaddress import VendingAddress
 
 #TODO return a payment result
-def return_payment(payment_id: int, payment_addr: str, vending_address: VendingAddress, utxo: Utxo):
+def return_payment(payment_id: int, payment_addr: str, vending_address_skey: str, utxo: Utxo):
     print(f"Returning payment {payment_id} {utxo}")
     
     # define txn file paths
@@ -45,13 +45,13 @@ def return_payment(payment_id: int, payment_addr: str, vending_address: VendingA
         tx_raw_path,
         None)
 
-    cardanocli.sign_txn(tx_raw_path, tx_signed_path, [vending_address.signing_key_path])
+    cardanocli.sign_txn(tx_raw_path, tx_signed_path, [vending_address_skey])
     tx_id = cardanocli.submit_txn(tx_signed_path)
     print(f"Payment {payment_id} refunded w/ txn {tx_id}.")
 
     return tx_id
 
-def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address: VendingAddress, utxo: Utxo):
+def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address_skey: str, utxo: Utxo):
     print(f"Sending pack {pack_id} for payment {payment_id}")
 
     # define txn file paths
@@ -81,7 +81,7 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address:
     outputs = vending_output + treasury_outputs
 
     minting_skey_path = config.config("payment_keys")["minting_skey_path"]
-    signing_keys = [vending_address.signing_key_path, minting_skey_path]
+    signing_keys = [vending_address_skey, minting_skey_path]
     mint_def = { 'assets': pack_assets, 'metadata_path': tx_metadata_path }
     print(f"Assets to send: {assets_to_send}") 
     cardanocli.build_txn(
