@@ -4,8 +4,8 @@ VALUES (1, 'addr_test1vqxc7z6s6rj3y5xteemduvhfz8t53csakgu0q9nl3zam9ng9rnnzp', 'c
 
 INSERT INTO packtypes(packTypeId, description, lovelaceCost, vendingAddressId)
 SELECT 1, 'Test1', 10000000, 2
-UNION ALL SELECT 2, 'Test2', 25000000, 1
-UNION ALL SELECT 3, 'Test3', 333000000, 1;
+UNION ALL SELECT 2, 'Test2', 25000000, 2
+UNION ALL SELECT 3, 'Test3', 333000000, 2;
 
 INSERT INTO nfts (policyId, assetName, metadataJson)
 SELECT '424deb9056d16add0ae37cc654f8f4ae17e99efa9dd9fe5f8df1823c', 'Nugget_1', '{"name": "Nugget #00001", "website": {"adanuggets.com": "https://adanuggets.com"}, "chef": {"Epoch Pool": "https://twitter.com/EPOCHpool"}, "mediaType": "image/png", "image": "ipfs://QmWqfEUVVbRTJFWAjf83HDqhzJZRdA4oH91Y95wDYRB1As", "attributes": {"Rarity": "Uncommon", "Base Shape": "Heart", "Color": "Spicy", "Batter Vector": "[1, 1, 1, 1, 1, 1]", "Background": "GradientD", "Crispiness": "15.1709%", "Hat": "Devil Horns", "Sauce 1": "None", "Sauce 2": "None", "Id": "1", "Batch": "1"}, "description": ["Generative nuggets and delicious sauces", "living on the Cardano Blockchain.", "Dipping is encouraged."]}' 
