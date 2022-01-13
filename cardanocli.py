@@ -116,8 +116,7 @@ def build_txn(
         mint_args.append("--metadata-json-file")
         mint_args.append(mint_def["metadata_path"])
         mint_args.append("--mint-script-file")
-        minting_script_path = config.config("minting")["script_path"]
-        mint_args.append(minting_script_path)
+        mint_args.append(mint_def["mint-script-file"])
 
     process = subprocess.run([
             "cardano-cli", "transaction", "build-raw"

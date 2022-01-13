@@ -33,6 +33,7 @@ def vend(config_path: str):
         time.sleep(5)
 
 def process_utxo(utxo: Utxo):
+    dipping_skey_path = config.config('payment_keys')['dipping_skey_path']
     try:
         payment_addr = blockfrost.get_tx_payment_addr(utxo.tx_id)
         # get payment ID
@@ -55,26 +56,27 @@ def process_utxo(utxo: Utxo):
             min_lovelace = 5000000
             if utxo.lovelace.amount < min_lovelace:
                 print(f'Dipping payment does not have enough lovelace ({utxo.lovelace}, minimum: {min_lovelace}).') 
-                #TODO return payment
+                payment.return_payment(payment_id, payment_addr, dipping_skey_path, utxo)
                 return 
 
             dipping_inputs = get_dipping_inputs(utxo)
             if dipping_inputs is None:
-                #TODO return payment
+                payment.return_payment(payment_id, payment_addr, dipping_skey_path, utxo)
                 return
+            (nugget_nft, sauce_nft, dipping_index) = dipping_inputs
 
             # execute the dip
-            dipped_nft = execute_dip(dipping_inputs)
+            dipped_nft = execute_dip(nugget_nft, sauce_nft, dipping_index)
+            payment.send_dip(payment_id, payment_addr, dipping_skey_path, utxo, nugget_nft, sauce_nft, dipped_nft)
         except:
             #TODO: Log exception with payment
             print(traceback.format_exc())
-            #data.insert_error_log(payment_id, traceback.format_exc())
+            data.insert_error_log(payment_id, traceback.format_exc())
     except:
         # erroring here is unlikley but we don't want to block the utxo loop
         print(traceback.format_exc())
 
-def execute_dip(dipping_params: Tuple[nft.Nft, nft.Nft, int]) -> nft.Nft:
-    (nugget, sauce, dipping_index) = dipping_params
+def execute_dip(nugget: nft.Nft, sauce: nft.Nft, dipping_index: int) -> nft.Nft:
     nugget_metadata = json.loads(nugget.metadata_json)
     sauce_metadata = json.loads(sauce.metadata_json)
 
@@ -108,7 +110,7 @@ def execute_dip(dipping_params: Tuple[nft.Nft, nft.Nft, int]) -> nft.Nft:
         'mediaType': 'video/mp4'
         }]
     dipped_metadata['attributes']['Sauce 1'] = dipped_sauce_type_1
-    dipped_metadata['attributes']['Sauce 2'] = dipped_sauce_type_2
+    dipped_metadata['attributes']['Sauce 2'] = dipped_sauce_type_2 if dipped_sauce_type_2 is not None else 'None'
 
     return nft.insert(nugget.policy_id, nugget.asset_name + 'D', json.dumps(dipped_metadata))
 
@@ -121,7 +123,7 @@ def get_dipping_inputs(utxo: Utxo) -> Optional[Tuple[nft.Nft, nft.Nft, int]]:
     (nugget, sauce) = dipping_nfts
     dipping_index = get_dipping_index(nugget)
     if dipping_index is None:
-        print('Nugget has been double-dipped.')
+        print('Nugget has already been double-dipped.')
         return None
 
     return (nugget, sauce, dipping_index)

@@ -18,20 +18,23 @@ class Nft:
         return str(self)
 
 def insert(policy_id: str, asset_name: str, metadata_json: str):
-    nft_id = pquery.read(f"""
+    nft_id = pquery.write_and_get_id(f"""
         INSERT INTO nfts (policyId, assetName, metadataJson)
         VALUES ('{policy_id}', '{asset_name}', '{metadata_json}')
         RETURNING nftId;
-    """)[0][0]
+    """)
+    print(nft_id)
 
     return Nft(nft_id, policy_id, asset_name, metadata_json)
 
-def nft_to_asset(nft: Nft) -> Asset:
+def nft_to_asset(nft: Nft, amount = 1) -> Asset:
     if cardanocli.get_cli_version() >= version.Version("1.32.1"):
         hexAssetName = nft.asset_name.encode("UTF-8").hex()
-        return Asset(f"{nft.policy_id}.{hexAssetName}", 1)
+        name = f"{nft.policy_id}.{hexAssetName}"
+    else:
+        name = f"{nft.policy_id}.{nft.asset_name}"
 
-    return Asset(f"{nft.policy_id}.{nft.asset_name}", 1)
+    return Asset(name, amount)
 
 def get_nft(nft_id: int) -> Optional[Nft]:
     r = pquery.read(f'''
