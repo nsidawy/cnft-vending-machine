@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import sys
@@ -12,12 +13,14 @@ import data
 import payment
 from utxo import Utxo
 import nft
+import pinata
+import the_dipper.main as dipper
 
 def vend(config_path: str):
     config.set_config_file(config_path)
     set_environment()
 
-    dipping_address = ''
+    dipping_address = config.config('address')['dipping_addr']
     
     while True:
         try:
@@ -55,13 +58,13 @@ def process_utxo(utxo: Utxo):
                 #TODO return payment
                 return 
 
-            dipping_parameters = get_dipping_parameters(utxo)
-            if dipping_parameters is None:
+            dipping_inputs = get_dipping_inputs(utxo)
+            if dipping_inputs is None:
                 #TODO return payment
                 return
 
             # execute the dip
-            dipped_nft = execute_dip(dipping_parameters)
+            dipped_nft = execute_dip(dipping_inputs)
         except:
             #TODO: Log exception with payment
             print(traceback.format_exc())
@@ -70,7 +73,46 @@ def process_utxo(utxo: Utxo):
         # erroring here is unlikley but we don't want to block the utxo loop
         print(traceback.format_exc())
 
-def get_dipping_parameters(utxo: Utxo) -> Optional[Tuple[nft.Nft, nft.Nft, int]]:
+def execute_dip(dipping_params: Tuple[nft.Nft, nft.Nft, int]) -> nft.Nft:
+    (nugget, sauce, dipping_index) = dipping_params
+    nugget_metadata = json.loads(nugget.metadata_json)
+    sauce_metadata = json.loads(sauce.metadata_json)
+
+    # get dip parameters
+    nugget_id = int(nugget_metadata['attributes']['Id'])
+    dipping_config = config.config("dipping")
+    nugget_base_path = dipping_config['nugget_base_path']
+    output_path = dipping_config['output_path']
+
+    # pull sauce types
+    if dipping_index == 0:
+        sauce_type_1 = sauce_metadata['attributes']['Type']
+        sauce_type_2 = None
+    # dipping index == 1
+    else:
+        sauce_type_1 = nugget_metadata['attributes']['Sauce 1']
+        sauce_type_2 = sauce_metadata['attributes']['Type']
+
+    (png_path, mp4_path, dipped_sauce_type_1, dipped_sauce_type_2) = dipper.dip(
+            nugget_base_path, nugget_id, sauce_type_1, sauce_type_2, output_path)
+
+    # upload assets to IPFS
+    png_ipfs_hash = pinata.upload_file(png_path)
+    mp4_ipfs_hash = pinata.upload_file(mp4_path)
+
+    dipped_metadata = copy.deepcopy(nugget_metadata)
+    dipped_metadata['image'] = f'ipfs://{png_ipfs_hash}'
+    dipped_metadata['files'] = [{
+        'src': f'ipfs://{mp4_ipfs_hash}',
+        'name': 'Nugget',
+        'mediaType': 'video/mp4'
+        }]
+    dipped_metadata['attributes']['Sauce 1'] = dipped_sauce_type_1
+    dipped_metadata['attributes']['Sauce 2'] = dipped_sauce_type_2
+
+    return nft.insert(nugget.policy_id, nugget.asset_name + 'D', json.dumps(dipped_metadata))
+
+def get_dipping_inputs(utxo: Utxo) -> Optional[Tuple[nft.Nft, nft.Nft, int]]:
     # get dipping information from utxo
     dipping_nfts = get_nugget_and_sauce(utxo)
     if dipping_nfts is None:
@@ -124,10 +166,6 @@ def get_dipping_index(nugget: nft.Nft) -> Optional[int]:
     elif metadata['attributes']['Sauce 2'] == 'None':
         return 1
     return None
-
-def execute_dip(dipping_params: Tuple[nft.Nft, nft.Nft, int]) -> nft.Nft:
-    (nugget, sauce, dipping_index) = dipping_params
-    return nugget
 
 def set_environment():
     environment = config.config("environment")

@@ -17,12 +17,35 @@ class Nft:
     def __repr__(self):
         return str(self)
 
+def insert(policy_id: str, asset_name: str, metadata_json: str):
+    nft_id = pquery.read(f"""
+        INSERT INTO nfts (policyId, assetName, metadataJson)
+        VALUES ('{policy_id}', '{asset_name}', '{metadata_json}')
+        RETURNING nftId;
+    """)[0][0]
+
+    return Nft(nft_id, policy_id, asset_name, metadata_json)
+
 def nft_to_asset(nft: Nft) -> Asset:
     if cardanocli.get_cli_version() >= version.Version("1.32.1"):
         hexAssetName = nft.asset_name.encode("UTF-8").hex()
         return Asset(f"{nft.policy_id}.{hexAssetName}", 1)
 
     return Asset(f"{nft.policy_id}.{nft.asset_name}", 1)
+
+def get_nft(nft_id: int) -> Optional[Nft]:
+    r = pquery.read(f'''
+        SELECT nftId, policyId, assetName, metadataJson
+        FROM nfts
+        WHERE nftId = {nft_id}
+    ''')
+
+    if len(r) == 0:
+        # NFT not found
+        return None
+
+    r = r[0]
+    return Nft(r[0], r[1], r[2], r[3])
 
 def get_nft_from_asset(asset: Asset) -> Optional[Nft]:
     asset_parts = asset.name.split('.')
