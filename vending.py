@@ -36,8 +36,9 @@ def vend(configs_path: str):
             set_environment()
 
             try:
+                vending_addresses = vendingaddress.get_vending_addresses()
                 for v in vending_addresses:
-                    now = datetime.now().strftime("%H:%M:%S")
+                    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     utxos = cardanocli.get_utxos(v.address)
                     if len(utxos) > 0:
                         pack_types = packtype.get_packtypes_dict(v)
