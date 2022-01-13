@@ -14,26 +14,40 @@ import payment
 from utxo import Utxo
 import vendingaddress
 
-def vend(config_path: str):
-    config.set_config_file(config_path)
-    set_environment()
+def vend(configs_path: str):
+    with open(configs_path) as f:
+        config_files = f.readlines()
+        config_files = [c.rstrip() for c in config_files]
 
-    vending_addresses = vendingaddress.get_vending_addresses()
-    vending_to_packtypes_dict = {v.id: packtype.get_packtypes_dict(v) for v in vending_addresses}
+    for config_file in config_files:
+        config.set_config_file(config_file)
+        set_environment()
 
-    print(f"Vending addresses:\n{vending_addresses}")
-    print(f"Packs for sale:\n{vending_to_packtypes_dict}")
+        vending_addresses = vendingaddress.get_vending_addresses()
+        vending_to_packtypes_dict = {v.id: packtype.get_packtypes_dict(v) for v in vending_addresses}
+
+        print(f"---Vending details for {config_file}.")
+        print(f"Vending addresses:\n{vending_addresses}")
+        print(f"Packs for sale:\n{vending_to_packtypes_dict}")
 
     while True:
-        try:
-            for v in vending_addresses:
-                utxos = cardanocli.get_utxos(v.address)
-                for utxo in utxos:
-                    process_utxo(utxo, v, vending_to_packtypes_dict[v.id])
-        except:
-            print(traceback.format_exc())
+        for config_file in config_files:
+            config.set_config_file(config_file)
+            set_environment()
 
-        time.sleep(5)
+            try:
+                vending_addresses = vendingaddress.get_vending_addresses()
+                for v in vending_addresses:
+                    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    utxos = cardanocli.get_utxos(v.address)
+                    if len(utxos) > 0:
+                        pack_types = packtype.get_packtypes_dict(v)
+                        print(f"[{now}] Found {len(utxos)} utxos for {config_file}")
+                        for utxo in utxos:
+                            process_utxo(utxo, v, pack_types)
+            except:
+                print(traceback.format_exc())
+        time.sleep(1)
 
 def process_utxo(utxo: Utxo, vending_address: vendingaddress.VendingAddress, lovelace_to_packtypes: Dict[int, packtype.PackType]):
     try:
@@ -70,6 +84,7 @@ def process_utxo(utxo: Utxo, vending_address: vendingaddress.VendingAddress, lov
                 data.insert_payment_refund(payment_id, tx_id)
                 return
 
+            print(f"Sending pack {bought_pack.description} for payment {payment_id}")
             data.update_pack_paymentid(pack_id, payment_id)
             tx_id = payment.send_pack(pack_id, payment_id, payment_addr, vending_address.signing_key_path, utxo)
             data.update_pack_mintingtxid(pack_id, tx_id)
