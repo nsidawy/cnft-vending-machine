@@ -9,6 +9,7 @@ import asset
 import blockfrost
 import cardanocli
 import config
+import dip
 import data
 import payment
 from utxo import Utxo
@@ -68,6 +69,7 @@ def process_utxo(utxo: Utxo):
             # execute the dip
             dipped_nft = execute_dip(nugget_nft, sauce_nft, dipping_index)
             payment.send_dip(payment_id, payment_addr, dipping_skey_path, utxo, nugget_nft, sauce_nft, dipped_nft)
+            dip.insert(payment_id, nugget_nft.nft_id, sauce_nft.nft_id, dipped_nft.nft_id)
         except:
             #TODO: Log exception with payment
             print(traceback.format_exc())
@@ -99,9 +101,16 @@ def execute_dip(nugget: nft.Nft, sauce: nft.Nft, dipping_index: int) -> nft.Nft:
             nugget_base_path, nugget_id, sauce_type_1, sauce_type_2, output_path)
 
     # upload assets to IPFS
+    print(f'Uploading {png_path} to IPFS')
     png_ipfs_hash = pinata.upload_file(png_path)
+    print(f'Uploading {mp4_path} to IPFS')
     mp4_ipfs_hash = pinata.upload_file(mp4_path)
 
+    # delete local assets
+    os.remove(png_path)
+    os.remove(mp4_path)
+
+    # construct dipped metadata
     dipped_metadata = copy.deepcopy(nugget_metadata)
     dipped_metadata['image'] = f'ipfs://{png_ipfs_hash}'
     dipped_metadata['files'] = [{

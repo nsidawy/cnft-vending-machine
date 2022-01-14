@@ -5,7 +5,7 @@ import cardanocli
 import pquery
 
 class Nft:
-    def __init__(self, nft_id: str, policy_id: str, asset_name: str, metadata_json: str):
+    def __init__(self, nft_id: int, policy_id: str, asset_name: str, metadata_json: str):
         self.nft_id = nft_id
         self.policy_id = policy_id
         self.asset_name = asset_name
