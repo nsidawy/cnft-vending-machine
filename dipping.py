@@ -71,7 +71,6 @@ def process_utxo(utxo: Utxo):
             payment.send_dip(payment_id, payment_addr, dipping_skey_path, utxo, nugget_nft, sauce_nft, dipped_nft)
             dip.insert(payment_id, nugget_nft.nft_id, sauce_nft.nft_id, dipped_nft.nft_id)
         except:
-            #TODO: Log exception with payment
             print(traceback.format_exc())
             data.insert_error_log(payment_id, traceback.format_exc())
     except:
@@ -139,8 +138,8 @@ def get_dipping_inputs(utxo: Utxo) -> Optional[Tuple[nft.Nft, nft.Nft, int]]:
 
 def get_nugget_and_sauce(utxo: Utxo) -> Optional[Tuple[nft.Nft, nft.Nft]]:
     # require exactly 2 dipping assets
-    dipping_asset_count = 2
-    if len(utxo.other_assets) != dipping_asset_count:
+    expected_asset_count = 2
+    if len(utxo.other_assets) != expected_asset_count:
         print(f'Dipping payment does not contain exactly {dipping_asset_count} assets: {utxo.other_assets}')
         return None
 
