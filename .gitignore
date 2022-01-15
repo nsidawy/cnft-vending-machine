@@ -2,6 +2,9 @@
 *.ini
 cardano/
 
+sql/nuggets.sql
+sql/resetNuggets.sh
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

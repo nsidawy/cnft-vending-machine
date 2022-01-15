@@ -23,7 +23,7 @@ def get_packtypes_dict(vending_address: VendingAddress):
         {where_clause}
     """)
 
-    if len(results) == 0:
-        raise Exception("packtypes table is empty")
+#    if len(results) == 0:
+#        raise Exception("packtypes table is empty")
 
     return {packtype[2]: PackType(packtype[0], packtype[1], packtype[2], packtype[3]) for packtype in results}

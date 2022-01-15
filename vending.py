@@ -73,20 +73,20 @@ def process_utxo(utxo: Utxo, vending_address: vendingaddress.VendingAddress, lov
             # handle incorrect payment amount
             if bought_pack is None:
                 print(f"Payment {payment_id} did not submit a valid payment amount: {utxo.lovelace.amount}")
-                tx_id = payment.return_payment(payment_id, payment_addr, vending_address, utxo)
+                tx_id = payment.return_payment(payment_id, payment_addr, vending_address.signing_key_path, utxo)
                 data.insert_payment_refund(payment_id, tx_id)
                 return
 
             pack_id = data.get_pack_to_sell(bought_pack.pack_type_id)
             if pack_id is None:
                 print(f"No more packs remaining: {bought_pack}")
-                tx_id = payment.return_payment(payment_id, payment_addr, vending_address, utxo)
+                tx_id = payment.return_payment(payment_id, payment_addr, vending_address.signing_key_path, utxo)
                 data.insert_payment_refund(payment_id, tx_id)
                 return
 
             print(f"Sending pack {bought_pack.description} for payment {payment_id}")
             data.update_pack_paymentid(pack_id, payment_id)
-            tx_id = payment.send_pack(pack_id, payment_id, payment_addr, vending_address, utxo)
+            tx_id = payment.send_pack(pack_id, payment_id, payment_addr, vending_address.signing_key_path, utxo)
             data.update_pack_mintingtxid(pack_id, tx_id)
         except:
             #TODO: Log exception with payment

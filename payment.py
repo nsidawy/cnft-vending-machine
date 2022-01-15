@@ -11,7 +11,7 @@ from utxo import Utxo
 from vendingaddress import VendingAddress
 
 #TODO return a payment result
-def return_payment(payment_id: int, payment_addr: str, vending_address: VendingAddress, utxo: Utxo):
+def return_payment(payment_id: int, payment_addr: str, vending_address_skey: str, utxo: Utxo) -> str:
     print(f"Returning payment {payment_id} {utxo}")
     
     # define txn file paths
@@ -45,13 +45,13 @@ def return_payment(payment_id: int, payment_addr: str, vending_address: VendingA
         tx_raw_path,
         None)
 
-    cardanocli.sign_txn(tx_raw_path, tx_signed_path, [vending_address.signing_key_path])
+    cardanocli.sign_txn(tx_raw_path, tx_signed_path, [vending_address_skey])
     tx_id = cardanocli.submit_txn(tx_signed_path)
     print(f"Payment {payment_id} refunded w/ txn {tx_id}.")
 
     return tx_id
 
-def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address: VendingAddress, utxo: Utxo):
+def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address_skey: str, utxo: Utxo) -> str:
     print(f"Sending pack {pack_id} for payment {payment_id}")
 
     # define txn file paths
@@ -81,8 +81,9 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address:
     outputs = vending_output + treasury_outputs
 
     minting_skey_path = config.config("payment_keys")["minting_skey_path"]
-    signing_keys = [vending_address.signing_key_path, minting_skey_path]
-    mint_def = { 'assets': pack_assets, 'metadata_path': tx_metadata_path }
+    signing_keys = [vending_address_skey, minting_skey_path]
+    mint_script_path = config.config("minting")["script_path"]
+    mint_def = { 'assets': pack_assets, 'metadata_path': tx_metadata_path, "mint-script-file":  mint_script_path }
     print(f"Assets to send: {assets_to_send}") 
     cardanocli.build_txn(
         utxo,
@@ -105,6 +106,55 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address:
     cardanocli.sign_txn(tx_raw_path, tx_signed_path, signing_keys)
     tx_id = cardanocli.submit_txn(tx_signed_path)
     print(f"Payment {payment_id} sent pack {pack_id} w/ txn {tx_id}.")
+
+    return tx_id
+
+def send_dip(payment_id: int, payment_addr: str, dipping_address_skey: str, utxo: Utxo, nugget: Nft, sauce: Nft, dipped: Nft) -> str:
+    print(f"Sending dipped nugget {dipped.nft_id} for payment {payment_id}")
+
+    # define txn file path
+    pid = os.getpid()
+    tx_draft_path = f"/tmp/txn_dip_{payment_id}_{pid}.draft"
+    tx_raw_path = f"/tmp/txn_dip_{payment_id}_{pid}.raw"
+    tx_signed_path = f"/tmp/txn_dip_{payment_id}_{pid}.signed"
+    tx_metadata_path = f"/tmp/txn_dip_{payment_id}_{pid}.json"
+
+    # write metadata
+    create_metadata_file(tx_metadata_path, [dipped])
+
+    # calculate min ada for fees
+    # don't calculate min utxo value since dipper gets all change
+    dipped_asset = nft_to_asset(dipped)
+    mint_assets = [nft_to_asset(nugget, -1), nft_to_asset(sauce, -1), dipped_asset]
+    assets_to_send = [Asset("lovelace", utxo.lovelace.amount), dipped_asset]
+    outputs = [(payment_addr, assets_to_send)]
+
+    minting_skey_path = config.config("payment_keys")["minting_skey_path"]
+    signing_keys = [dipping_address_skey, minting_skey_path]
+    mint_script_path = config.config("minting")["script_path"]
+    mint_def = { 'assets': mint_assets, 'metadata_path': tx_metadata_path, "mint-script-file":  mint_script_path }
+    print(f"Assets to send: {assets_to_send}") 
+    cardanocli.build_txn(
+        utxo,
+        outputs,
+        0,
+        tx_draft_path,
+        mint_def)
+    min_fee = cardanocli.calculate_min_fee(tx_draft_path, 1, len(outputs), len(signing_keys))
+
+    # setup transaction w/ proper fees & updated outputs
+    assets_to_send = [Asset("lovelace", utxo.lovelace.amount - min_fee), dipped_asset]
+    outputs = [(payment_addr, assets_to_send)]
+    cardanocli.build_txn(
+        utxo,
+        outputs,
+        min_fee,
+        tx_raw_path,
+        mint_def)
+
+    cardanocli.sign_txn(tx_raw_path, tx_signed_path, signing_keys)
+    tx_id = cardanocli.submit_txn(tx_signed_path)
+    print(f"Payment {payment_id} sent dipped NFT {dipped.nft_id} w/ txn {tx_id}.")
 
     return tx_id
 
