@@ -1,5 +1,5 @@
 import psycopg2 #type: ignore
-import config
+from app.utils import config
 
 def read(query: str):
     conn = None

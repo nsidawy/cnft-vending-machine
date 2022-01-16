@@ -1,6 +1,6 @@
 from typing import Optional
-import pquery
-from vendingaddress import VendingAddress
+from app.utils import pquery
+from app.data.vendingaddress import VendingAddress
 
 class PackType:
     def __init__(self, pack_type_id: str, description: str, lovelace_cost: int, vending_address_id: Optional[int]):

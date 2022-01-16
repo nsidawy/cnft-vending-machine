@@ -2,9 +2,9 @@ import json
 from packaging import version
 import subprocess
 from typing import List, Tuple
-from utxo import Utxo
-from asset import Asset, get_assets_from_str, get_multi_asset_str
-import config
+from app.data.utxo import Utxo
+from app.data.asset import Asset, get_assets_from_str, get_multi_asset_str
+from app.utils import config
 
 def get_net_cli_arg():
     net_params = config.config("net")

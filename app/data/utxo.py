@@ -1,5 +1,5 @@
 from typing import List
-from asset import Asset, get_lovelace_and_other_assets
+from app.data.asset import Asset, get_lovelace_and_other_assets
 
 class Utxo:
     def __init__(self, tx_id: str, index_id: int, assets: List[Asset]):

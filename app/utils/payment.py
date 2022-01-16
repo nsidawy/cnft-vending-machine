@@ -1,14 +1,12 @@
 from typing import List
-from asset import Asset
 from itertools import groupby
-import cardanocli
-import config
-import data
-from nft import Nft, nft_to_asset
 import os
-import treasury
-from utxo import Utxo
-from vendingaddress import VendingAddress
+from app.utils import cardanocli, config
+from app.data import queries, treasury
+from app.data.nft import Nft, nft_to_asset
+from app.data.asset import Asset
+from app.data.utxo import Utxo
+from app.data.vendingaddress import VendingAddress
 
 #TODO return a payment result
 def return_payment(payment_id: int, payment_addr: str, vending_address_skey: str, utxo: Utxo) -> str:
@@ -34,7 +32,7 @@ def return_payment(payment_id: int, payment_addr: str, vending_address_skey: str
 
     # if we don't have enough lovelace to process the transaction, stop
     if utxo.lovelace.amount < min_fee + min_return_lovelace:
-        data.insert_insufficient_funds_for_return(payment_id, min_return_lovelace, min_fee)
+        queries.insert_insufficient_funds_for_return(payment_id, min_return_lovelace, min_fee)
         raise Exception(f"Not enough lovelace ({utxo.lovelace.amount}) to cover fees & min value ({min_fee}, {min_return_lovelace})")
 
     new_lovelace_output = Asset("lovelace", utxo.lovelace.amount - min_fee)
@@ -64,7 +62,7 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address_
     treasuries = treasury.get_treasuries()
 
     # get packs
-    pack_nfts = data.get_pack_nfts(pack_id)
+    pack_nfts = queries.get_pack_nfts(pack_id)
     if len(pack_nfts) == 0:
         raise Exception(f"Pack {pack_id} has no NFTs assigned to it")
 

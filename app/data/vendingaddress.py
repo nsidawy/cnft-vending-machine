@@ -1,6 +1,5 @@
 from typing import List, Optional
-import config
-import pquery
+from app.utils import config, pquery
 
 class VendingAddress:
     def __init__(self, id: Optional[int], address: str, signing_key_path: str):

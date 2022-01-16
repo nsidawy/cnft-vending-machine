@@ -4,15 +4,9 @@ import sys
 import time
 import traceback
 from typing import Dict
-import asset
-import blockfrost
-import cardanocli
-import config
-import data
-import packtype
-import payment
-from utxo import Utxo
-import vendingaddress
+from app.utils import blockfrost, cardanocli, config, payment 
+from app.data import asset, queries, packtype, vendingaddress
+from app.data.utxo import Utxo
 
 def vend(configs_path: str):
     with open(configs_path) as f:
@@ -53,9 +47,9 @@ def process_utxo(utxo: Utxo, vending_address: vendingaddress.VendingAddress, lov
     try:
         payment_addr = blockfrost.get_tx_payment_addr(utxo.tx_id)
         # get payment ID
-        payment_id = data.get_payment_id(utxo.tx_id, utxo.index_id)
+        payment_id = queries.get_payment_id(utxo.tx_id, utxo.index_id)
         if payment_id is None:
-            payment_id = data.insert_payment(
+            payment_id = queries.insert_payment(
                 utxo.tx_id
                 , utxo.index_id
                 , utxo.lovelace.amount
@@ -74,24 +68,24 @@ def process_utxo(utxo: Utxo, vending_address: vendingaddress.VendingAddress, lov
             if bought_pack is None:
                 print(f"Payment {payment_id} did not submit a valid payment amount: {utxo.lovelace.amount}")
                 tx_id = payment.return_payment(payment_id, payment_addr, vending_address.signing_key_path, utxo)
-                data.insert_payment_refund(payment_id, tx_id)
+                queries.insert_payment_refund(payment_id, tx_id)
                 return
 
-            pack_id = data.get_pack_to_sell(bought_pack.pack_type_id)
+            pack_id = queries.get_pack_to_sell(bought_pack.pack_type_id)
             if pack_id is None:
                 print(f"No more packs remaining: {bought_pack}")
                 tx_id = payment.return_payment(payment_id, payment_addr, vending_address.signing_key_path, utxo)
-                data.insert_payment_refund(payment_id, tx_id)
+                queries.insert_payment_refund(payment_id, tx_id)
                 return
 
             print(f"Sending pack {bought_pack.description} for payment {payment_id}")
-            data.update_pack_paymentid(pack_id, payment_id)
+            queries.update_pack_paymentid(pack_id, payment_id)
             tx_id = payment.send_pack(pack_id, payment_id, payment_addr, vending_address.signing_key_path, utxo)
-            data.update_pack_mintingtxid(pack_id, tx_id)
+            queries.update_pack_mintingtxid(pack_id, tx_id)
         except:
             #TODO: Log exception with payment
             print(traceback.format_exc())
-            data.insert_error_log(payment_id, traceback.format_exc())
+            queries.insert_error_log(payment_id, traceback.format_exc())
     except:
         # erroring here is unlikley but we don't want to block the utxo loop
         print(traceback.format_exc())

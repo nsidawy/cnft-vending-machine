@@ -1,6 +1,6 @@
 import json
 import requests
-import config
+from app.utils import config
 
 def get_tx_payment_addr(tx_id: str):
     blockfrost_config = config.config("blockfrost")
