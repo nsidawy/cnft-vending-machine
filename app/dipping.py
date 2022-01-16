@@ -1,21 +1,9 @@
-import copy
-import json
-import os
-import sys
-import time
-import traceback
+import copy, json, os, sys, time, traceback
 from typing import Optional, Tuple
-import asset
-import blockfrost
-import cardanocli
-import config
-import dip
-import data
-import payment
-from utxo import Utxo
-import nft
-import pinata
-import the_dipper.main as dipper
+from app.utils import blockfrost, cardanocli, config, payment, pinata
+from app.data import asset, dip, queries, nft
+from app.data.utxo import Utxo
+import app.the_dipper.main as dipper
 
 def vend(config_path: str):
     config.set_config_file(config_path)
@@ -38,9 +26,9 @@ def process_utxo(utxo: Utxo):
     try:
         payment_addr = blockfrost.get_tx_payment_addr(utxo.tx_id)
         # get payment ID
-        payment_id = data.get_payment_id(utxo.tx_id, utxo.index_id)
+        payment_id = queries.get_payment_id(utxo.tx_id, utxo.index_id)
         if payment_id is None:
-            payment_id = data.insert_payment(
+            payment_id = queries.insert_payment(
                 utxo.tx_id
                 , utxo.index_id
                 , utxo.lovelace.amount
@@ -72,7 +60,7 @@ def process_utxo(utxo: Utxo):
             dip.insert(payment_id, nugget_nft.nft_id, sauce_nft.nft_id, dipped_nft.nft_id)
         except:
             print(traceback.format_exc())
-            data.insert_error_log(payment_id, traceback.format_exc())
+            queries.insert_error_log(payment_id, traceback.format_exc())
     except:
         # erroring here is unlikley but we don't want to block the utxo loop
         print(traceback.format_exc())
@@ -140,7 +128,7 @@ def get_nugget_and_sauce(utxo: Utxo) -> Optional[Tuple[nft.Nft, nft.Nft]]:
     # require exactly 2 dipping assets
     expected_asset_count = 2
     if len(utxo.other_assets) != expected_asset_count:
-        print(f'Dipping payment does not contain exactly {dipping_asset_count} assets: {utxo.other_assets}')
+        print(f'Dipping payment does not contain exactly {expected_asset_count} assets: {utxo.other_assets}')
         return None
 
     # check that both assets exist in our database
@@ -175,9 +163,13 @@ def get_dipping_index(nugget: nft.Nft) -> Optional[int]:
         return 0
     elif metadata['attributes']['Sauce 2'] == 'None':
         return 1
+
     return None
 
 def set_environment():
     environment = config.config("environment")
     for key in environment:
         os.environ[key.upper()] = environment[key]
+
+if __name__ == '__main__':
+    vend(sys.argv[1])

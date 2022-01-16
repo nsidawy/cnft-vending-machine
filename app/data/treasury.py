@@ -1,7 +1,6 @@
 from typing import List, Tuple
-import config
-import pquery
-from asset import Asset
+from app.utils import pquery, config
+from app.data.asset import Asset
 
 class Treasury:
     def __init__(self, address: str, share_percent: float):

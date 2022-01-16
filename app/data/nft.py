@@ -1,8 +1,7 @@
-from asset import Asset
+from app.data.asset import Asset
 from packaging import version
 from typing import Optional
-import cardanocli
-import pquery
+from app.utils import cardanocli, pquery
 
 class Nft:
     def __init__(self, nft_id: int, policy_id: str, asset_name: str, metadata_json: str):

@@ -1,4 +1,4 @@
-import pquery
+from app.utils import pquery
 
 class Dip:
     def __init__(self, payment_id: int, burned_nugget_nft_id: int, burned_sauce_nft_id: int, dipped_nugget_nft_id: int):

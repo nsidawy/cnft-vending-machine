@@ -1,7 +1,7 @@
 import requests
-import config
 import json
 import time
+from app.utils import config
 
 def upload_file(path: str) -> str:
     url = 'https://api.pinata.cloud/pinning/pinFileToIPFS'

@@ -1,4 +1,4 @@
-[submodule "the_dipper"]
-	path = the_dipper
+[submodule "app/the_dipper"]
+	path = app/the_dipper
 	url = git@github.com:Ada-Nuggets/the-dipper.git
-	branch = vending
+    branch = vending
