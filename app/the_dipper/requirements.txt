@@ -1,5 +1,0 @@
-glitch-this
-Pillow~=8.3.2
-ffmpeg-python
-opencv-python~=4.5.4.60
-imutils
