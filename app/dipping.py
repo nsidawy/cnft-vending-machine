@@ -163,9 +163,13 @@ def get_dipping_index(nugget: nft.Nft) -> Optional[int]:
         return 0
     elif metadata['attributes']['Sauce 2'] == 'None':
         return 1
+
     return None
 
 def set_environment():
     environment = config.config("environment")
     for key in environment:
         os.environ[key.upper()] = environment[key]
+
+if __name__ == '__main__':
+    vend(sys.argv[1])

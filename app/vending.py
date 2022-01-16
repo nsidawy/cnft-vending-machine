@@ -99,3 +99,6 @@ def update_print():
             now = datetime.now().strftime("%H:%M:%S")
             old_f.write(x.replace("\n", " [%s]\n" % now))
     sys.stdout = DebugWriter()
+
+if __name__ == '__main__':
+    vend(sys.argv[1])
