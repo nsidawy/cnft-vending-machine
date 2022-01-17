@@ -56,8 +56,8 @@ def process_utxo(utxo: Utxo):
 
             # execute the dip
             dipped_nft = execute_dip(nugget_nft, sauce_nft, dipping_index)
-            payment.send_dip(payment_id, payment_addr, dipping_skey_path, utxo, nugget_nft, sauce_nft, dipped_nft)
-            dip.insert(payment_id, nugget_nft.nft_id, sauce_nft.nft_id, dipped_nft.nft_id)
+            tx_id = payment.send_dip(payment_id, payment_addr, dipping_skey_path, utxo, nugget_nft, sauce_nft, dipped_nft)
+            dip.insert(payment_id, nugget_nft.nft_id, sauce_nft.nft_id, dipped_nft.nft_id, tx_id)
         except:
             print(traceback.format_exc())
             queries.insert_error_log(payment_id, traceback.format_exc())

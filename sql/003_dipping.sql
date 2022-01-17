@@ -6,6 +6,7 @@ CREATE TABLE dips (
     , burnedNuggetNftId INT NOT NULL
     , burnedSauceNftId INT NOT NULL
     , dippedNuggetNftId INT NOT NULL
+    , txId VARCHAR(256) NOT NULL
     , CONSTRAINT FK_dips_payments FOREIGN KEY (paymentId)
         REFERENCES payments (paymentId)
     , CONSTRAINT FK_dips_burnedNugget FOREIGN KEY (burnedNuggetNftId)
