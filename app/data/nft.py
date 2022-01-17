@@ -17,9 +17,10 @@ class Nft:
         return str(self)
 
 def insert(policy_id: str, asset_name: str, metadata_json: str):
+    metadata_sql = metadata_json.replace("'", "''")
     nft_id = pquery.write_and_get_id(f"""
         INSERT INTO nfts (policyId, assetName, metadataJson)
-        VALUES ('{policy_id}', '{asset_name}', '{metadata_json}')
+        VALUES ('{policy_id}', '{asset_name}', '{metadata_sql}')
         RETURNING nftId;
     """)
     print(nft_id)
