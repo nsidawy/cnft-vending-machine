@@ -122,7 +122,7 @@ def build_txn(
             "cardano-cli", "transaction", "build-raw"
             , "--tx-in", f"{utxo.tx_id}#{utxo.index_id}"
             , "--fee", str(fee)
-            , "--invalid-hereafter", str(get_tip_slot() + 1000)
+            , "--invalid-hereafter", str(get_tip_slot() + 7200)
             , "--out-file", tx_draft_path]
             + tx_outs
             + mint_args
