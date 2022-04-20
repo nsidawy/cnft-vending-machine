@@ -9,4 +9,4 @@ This repository contains a generic application for a Cardano NFT vending machine
 * Supports complex payments that may include other NFTs.
 * Completely configurable via a PostgreSql data model.
 
-**Requires a local Cardano node running and Cardano CLI installed. Versions 1.34.0 and greater supported. (Cardano Node Github)[https://github.com/input-output-hk/cardano-node]  
+**Requires a local Cardano node running and Cardano CLI installed. Versions 1.34.0 and greater supported.** [Cardano Node Github](https://github.com/input-output-hk/cardano-node)
