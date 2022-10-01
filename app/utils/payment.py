@@ -71,7 +71,8 @@ def send_pack(pack_id: int, payment_id: int, payment_addr: str, vending_address_
 
     # calculate min ada for fees & pack utxo
     pack_assets = [nft_to_asset(n) for n in pack_nfts]
-    min_send_lovelace = cardanocli.calculate_min_value(payment_addr, pack_assets)
+    assets_to_send = [Asset("lovelace", utxo.lovelace.amount)] + pack_assets
+    min_send_lovelace = cardanocli.calculate_min_value(payment_addr, assets_to_send)
 
     assets_to_send = [Asset("lovelace", min_send_lovelace)] + pack_assets
     vending_output = [(payment_addr, assets_to_send)]

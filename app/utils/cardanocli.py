@@ -74,7 +74,7 @@ def calculate_min_value(address: str, assets: List[Asset]) -> int:
     process = subprocess.run([
             "cardano-cli", "transaction", "calculate-min-required-utxo"
             , "--protocol-params-file", get_protocol_params_path()
-            , "--tx-out", f'{address} {multi_asset}']
+            , "--tx-out", f'{address} {multi_asset}', '--babbage-era']
         , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     if process.returncode != 0:
         raise Exception(f'Error calculating min value for assets {assets}\n{process.stderr.decode("UTF-8")}')
